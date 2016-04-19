@@ -1,7 +1,7 @@
 ---
-layout: post
+layout: page
 title: "Im Anfang war die Tat"
-description: "Was bisher geschah"
+tagline: "Was bisher geschah"
 category: "Into the Light"
 tags: [teamproject, devblog, lowkey]
 ---
