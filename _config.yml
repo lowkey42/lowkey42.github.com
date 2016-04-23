@@ -8,14 +8,12 @@ highlighter: rouge
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title : Jekyll Bootstrap
-tagline: Site Tagline
+title : SecondSystem
+tagline: Yet another devblog
 author :
-  name : Name Lastname
-  email : blah@email.test
-  github : username
-  twitter : username
-  feedburner : feedname
+  name : Florian Oetke
+  email : mephistopheles@onlinehome.de
+  github : lowkey42
 
 paginate: 15
 gems:
@@ -88,18 +86,7 @@ JB :
   comments :
     provider : disqus
     disqus :
-      short_name : jekyllbootstrap
-    livefyre :
-      site_id : 123
-    intensedebate :
-      account : 123abc
-    facebook :
-      appid : 123
-      num_posts: 5
-      width: 580
-      colorscheme: light
-    duoshuo :
-      short_name : jekyllbootstrap
+      short_name : secondsystem
    
   # Settings for analytics helper
   # Set 'provider' to the analytics provider you want to use.
