@@ -1,0 +1,236 @@
+---
+layout: page
+title: Portfolio 
+header: Portfolio
+group: navigation
+---
+{% include JB/setup %}
+
+<script language="javascript" type="text/javascript">
+	var active_pf_entry;
+	var prev_single_row = false;
+	
+	function stop_event(event) {
+		event = event || window.event // cross-browser event
+	
+		if (event.stopPropagation) {
+			// W3C standard variant
+			event.stopPropagation()
+		} else {
+			// IE variant
+			event.cancelBubble = true
+		}
+	}
+	
+	function pf_play(elem) {
+		var v = elem.getElementsByTagName('iframe')[0];
+		if(v!==undefined) {
+			v.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+		}
+	}
+	function pf_stop(elem) {
+		var v = elem.getElementsByTagName('iframe')[0];
+		if(v!==undefined) {
+			v.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+		}
+	}
+	
+	function on_pf_entry_click(event, elem) {
+		if(elem===active_pf_entry) {
+			stop_event(event);
+			return;
+		}
+	
+		if (active_pf_entry !== undefined && active_pf_entry!==null) {
+			if(active_pf_entry.className=="pf_entry pf_active pf_expand")
+				active_pf_entry.className = "pf_entry pf_expand";
+			else
+				active_pf_entry.className = "pf_entry";
+			pf_stop(active_pf_entry);
+		}
+		
+		if(elem!==null) {
+			if(elem.className=="pf_entry pf_expand")
+				elem.className = "pf_entry pf_active pf_expand";
+			else
+				elem.className = "pf_entry pf_active";
+			pf_play(elem);
+			location.hash = "entry_" + elem.id;
+		} else {
+			location.hash = "";
+		}
+		active_pf_entry = elem;
+		
+		if(event!==undefined) {
+			stop_event(event);
+		}
+	}
+	function on_pf_entry_mouseover(elem) {
+		if (active_pf_entry===undefined || active_pf_entry===null || prev_single_row) {
+			pf_play(elem);
+		}
+	}
+	function on_pf_entry_mouseout(elem) {
+		if (active_pf_entry===undefined || active_pf_entry===null || active_pf_entry!==elem || prev_single_row) {
+			pf_stop(elem);
+		}
+	}
+	
+	function on_resize() {
+		var entries = document.getElementsByClassName("pf_entry");
+		if(entries.length>0) {
+			var y = entries[0].getBoundingClientRect().top;
+			var single_row = true;
+			for(var i = 1; i < entries.length; i++) {
+				if(y != entries[i].getBoundingClientRect().top)
+					single_row = false;   
+			}
+			
+			if(single_row) {
+				prev_single_row = true;
+				for(var i = 0; i < entries.length; i++) {
+					entries[i].className = "pf_entry pf_expand";
+				}
+				
+			} else if(prev_single_row) {
+				prev_single_row = false;
+				for(var i = 0; i < entries.length; i++) {
+					entries[i].className = "pf_entry";
+				}
+			}
+		}
+	}
+	
+	on_resize();
+	window.onresize = function(event) {
+		on_resize();
+	}
+</script>
+
+<div class="portfolio_container" onclick="on_pf_entry_click(event, null)">
+<div class="portfolio">
+	
+	<section id="yggdrasill" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
+		<h2>Yggdrasill (2019 - Now)</h2>
+		<img width="500" height="280" src="todo.png"/>
+		<div>
+			<p>TODO</p>
+			<label>Download:</label> <span class="label_value">
+				<a class="pf_download_link" href="https://proc_world_gen.gitlab.io/yggdrasill/">WebGL</a>
+				<a class="pf_download_link" href="https://gitlab.com/proc_world_gen/yggdrasill">GitLab</a>
+			</span><br/>
+			<label>Teamsize:</label> <span class="label_value">1 programmer</span><br/>
+			
+			<p>TODO</p>
+		</div>
+		<div class="pf_fadeout" />
+	</section>
+
+	<section id="mirrage" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
+		<h2>Mirrage (2017 - Now)</h2>
+		<iframe width="500" height="280" src="http://www.youtube.com/embed/lRZGpQ0QQm0?enablejsapi=1&loop=1&playlist=gHHLuwjDiZo&showinfo=0&autoplay=1&controls=0" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_mirrage.jpeg" class="pf_preview"/>
+		<div>
+			<p>A Vulkan based 3D renderer and simple game engine featuring screen space global illumination.</p>
+			<label>Website:</label> <a href="https://gitlab.com/lowkey42/mirrage">GitLab</a> <br/>
+			<label>Timeframe:</label> <span class="label_value">2 years +</span><br/>
+			<label>Teamsize:</label> <span class="label_value">1 programmer</span><br/>
+			
+			<p>Mirrage (Mirrage Indirect Radiance Renderer And Game Engine) is a Vulkan based deferred renderer with bits and pieces of a simple game engine, that has been developed as part of my CS Bachelor thesis about screen-space global illumination in 2017.</p>
+			
+			<p>
+				Features:
+				<ul>
+					<li>Defered renderer</li>
+					<li>Skeletal animations</li>
+					<li>Easily extensible data oriented entity component system</li>
+					<li>Diffuse and specular global Illumination with screen space raytracing</li>
+					<li>GPGPU particles</li>
+					<li>Weight base order independent transparency</li>
+					<li>Depth of field</li>
+					<li>Visiblity matching tone mapping based on histogram equalization</li>
+				</ul>
+			</p>
+		</div>
+		<div class="pf_fadeout" />
+	</section>
+	
+	<section id="shhhinobi" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
+		<h2>Shhhinobi (2017)</h2>
+		<iframe width="500" height="280" src="http://www.youtube.com/embed/r_tCyxPco-0?enablejsapi=1&loop=1&playlist=r_tCyxPco-0&showinfo=0&autoplay=1&controls=0" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_shhhinobi.png" class="pf_preview"/>
+		<div>
+			<p>Shhh! You're a Ninja and no one can see you but so is everyone else. At least until you move! You are fast and deadly, to win you need to make smart moves and take out your opponents with your weapon.</p>
+			<p>Meet with up to 8 of your friends and brutally murder them from the shadows in this arena plattformer in which everyone is invisible until they move.</p>
+			<label>Website:</label> <span class="label_value">
+				<a class="pf_download_link" href="http://globalgamejam.org/2017/games/shhhinobi">GGJ17</a>
+				<a class="pf_download_link" href="https://github.com/compix/NINJA">GitHub</a>
+			</span><br/>
+			<label>Download:</label> <span class="label_value">
+				<a class="pf_download_link" href="https://github.com/compix/NINJA/releases">Windows/Linux/source</a>
+				<a class="pf_download_link" href="https://www.airconsole.com/play/battle-games/shhhinobi">AirConsole (WebGL)</a>
+			</span><br/>
+			<label>Timeframe:</label> <span class="label_value">48 hours +</span><br/>
+			<label>Teamsize:</label> <span class="label_value">2 programmers, 2 artists</span><br/>
+			
+			<p>A party arena plattformer that has been initialy developed during the 2017 Global Game Jam and has later been extended and adapted to AirConsole.</p>
+		</div>
+		<div class="pf_fadeout" />
+	</section>
+	
+	<section id="magnum-opus" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
+		<h2>Magnum Opus (2015)</h2>
+		<iframe width="500" height="280" src="http://www.youtube.com/embed/TXaIRCCGJPI?enablejsapi=1&loop=1&playlist=TXaIRCCGJPI&showinfo=0&autoplay=1&controls=0" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_magnum_opus.png" class="pf_preview"/>
+		<div>
+			<p>A 2D twin-stick shooter in which the player has to collect raw elements (fire, water, stone, ...) and combine them for stronger attacks.</p>
+			
+			<label>Download:</label> <span class="label_value">
+				<a class="pf_download_link" href="demos/MagnumOpus.html">WebGL</a>
+				<a class="pf_download_link" href="https://github.com/lowkey42/MagnumOpus">GitHub</a>
+			</span><br/>
+			<label>Timeframe:</label> <span class="label_value">3 month (part-time)</span><br/>
+			<label>Teamsize:</label> <span class="label_value">2 programmers</span><br/>
+						
+			<p>
+				Features:
+				<ul>
+					<li>Complex combat system</li>
+					<li>OpenGL, SDL and C++ based 2D engine written from scratch</li>
+					<li>Online highscore list</li>
+					<li>Procedural level generation</li>
+				</ul>
+			</p>
+		</div>
+		<div class="pf_fadeout" />
+	</section>
+	
+</div>
+</div>
+
+<br style="clear: both"/>
+
+<script language="javascript" type="text/javascript">
+	var cusid_ele = document.getElementsByClassName('pf_entry');
+	for (var i = 0; i < cusid_ele.length; ++i) {
+		cusid_ele[i].className = "pf_entry";
+	}
+
+	var anchor = window.location.hash.substring(1);
+	if(anchor!==null) {
+		var e = document.getElementById(anchor.replace("entry_", ""));
+		if(e!==null) {
+			location.hash = anchor.replace("entry_", "");
+			location.hash = anchor;
+			on_pf_entry_click(undefined, e);
+		}
+	}
+	
+	on_resize();
+	
+</script>
+
