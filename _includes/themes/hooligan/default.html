@@ -56,10 +56,18 @@
               </ul>
               <ul class="nav pull-right social visible-desktop">
                 <li class="divider-vertical"></li>
+                {% if site.author.gitlab %}
+                <li>
+                  <a href="https://gitlab.com/{{ site.author.github }}" class="zocial" target="_blank">
+                    <span>GitLab</span>
+                  </a>
+                </li>
+                {% endif %}
+                <li class="divider-vertical"></li>
                 {% if site.author.github %}
                 <li>
-                  <a href="https://github.com/{{ site.author.github }}" class="zocial github icon" target="_blank">
-                    <span class="hidden-desktop">Github</span>
+                  <a href="https://github.com/{{ site.author.github }}" class="zocial" target="_blank">
+                    <span>GitHub</span>
                   </a>
                 </li>
                 {% endif %}

@@ -8,6 +8,7 @@ group: navigation
 
 <script language="javascript" type="text/javascript">
 	var active_pf_entry;
+	var prev_single_row = false;
 	
 	function stop_event(event) {
 		event = event || window.event // cross-browser event
@@ -41,12 +42,18 @@ group: navigation
 		}
 	
 		if (active_pf_entry !== undefined && active_pf_entry!==null) {
-			active_pf_entry.className = "pf_entry";
+			if(active_pf_entry.className=="pf_entry pf_active pf_expand")
+				active_pf_entry.className = "pf_entry pf_expand";
+			else
+				active_pf_entry.className = "pf_entry";
 			pf_stop(active_pf_entry);
 		}
 		
 		if(elem!==null) {
-			elem.className = "pf_entry pf_active";
+			if(elem.className=="pf_entry pf_expand")
+				elem.className = "pf_entry pf_active pf_expand";
+			else
+				elem.className = "pf_entry pf_active";
 			pf_play(elem);
 			location.hash = "entry_" + elem.id;
 		} else {
@@ -59,149 +66,149 @@ group: navigation
 		}
 	}
 	function on_pf_entry_mouseover(elem) {
-		if (active_pf_entry===undefined || active_pf_entry===null) {
+		if (active_pf_entry===undefined || active_pf_entry===null || prev_single_row) {
 			pf_play(elem);
 		}
 	}
 	function on_pf_entry_mouseout(elem) {
-		if (active_pf_entry===undefined || active_pf_entry===null || active_pf_entry!==elem) {
+		if (active_pf_entry===undefined || active_pf_entry===null || active_pf_entry!==elem || prev_single_row) {
 			pf_stop(elem);
 		}
+	}
+	
+	function on_resize() {
+		var entries = document.getElementsByClassName("pf_entry");
+		if(entries.length>0) {
+			var y = entries[0].getBoundingClientRect().top;
+			var single_row = true;
+			for(var i = 1; i < entries.length; i++) {
+				if(y != entries[i].getBoundingClientRect().top)
+					single_row = false;   
+			}
+			
+			if(single_row) {
+				prev_single_row = true;
+				for(var i = 0; i < entries.length; i++) {
+					entries[i].className = "pf_entry pf_expand";
+				}
+				
+			} else if(prev_single_row) {
+				prev_single_row = false;
+				for(var i = 0; i < entries.length; i++) {
+					entries[i].className = "pf_entry";
+				}
+			}
+		}
+	}
+	
+	on_resize();
+	window.onresize = function(event) {
+		on_resize();
 	}
 </script>
 
 <div class="portfolio_container" onclick="on_pf_entry_click(event, null)">
 <div class="portfolio">
-	<section id="into-the-light" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	
+	<section id="yggdrasill" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
-		<h2>Into the Light</h2>
-		<iframe width="400" height="225" src="http://www.youtube.com/embed/15nltDbaaoU?enablejsapi=1&loop=true" frameborder="0" allowfullscreen class="pf_video"></iframe>
-		<img width="400" height="225" src="todo.png" class="pf_preview"/>
+		<h2>Yggdrasill (2019 - Now)</h2>
+		<img width="500" height="280" src="todo.png"/>
 		<div>
-			<p>A 2D puzzle plattformer about light, colors and suicide</p>
+			<p>TODO</p>
 			<label>Download:</label> <span class="label_value">
-				<a href="http://lowkey42.github.io/teamproject/">WebGL</a> 
-				<a href="https://github.com/lowkey42/teamproject/releases/download/v0.2/into_the_light.zip">Windows/Linux</a> 
-				<a href="https://github.com/lowkey42/teamproject">Source</a>
+				<a class="pf_download_link" href="https://proc_world_gen.gitlab.io/yggdrasill/">WebGL</a>
+				<a class="pf_download_link" href="https://gitlab.com/proc_world_gen/yggdrasill">GitLab</a>
 			</span><br/>
-			<label>Timeframe:</label> <span class="label_value">6 month (part-time)</span><br/>
-			<label>Teamsize:</label> <span class="label_value">2 programmers, 3 artists</span><br/>
-			<label>My role:</label> <span class="label_value">Lead programmer and game designer</span><br/>
+			<label>Teamsize:</label> <span class="label_value">1 programmer</span><br/>
 			
-			<p>A 2D puzzle plattformer in which the player can transform into a beam of light to reflect off of surfaces an reach the end of the level as fast as possible.</p>
-			
-			<p>
-				Features:
-				<ul>
-					<li>2.5D forward renderer (2D sprites in 3D scene)</li>
-					<li>OpenGL, SDL and C++ based engine written from scratch</li>
-					<li>easy to use level editor</li>
-					<li>Smart-Textures for terrain</li>
-					<li>Online highscore list</li>
-					<li>GPU based Pixel-perfect soft shadows</li>
-				</ul>
-			</p>
+			<p>TODO</p>
 		</div>
 		<div class="pf_fadeout" />
-	</section>	
+	</section>
 
-	<section id="last-summoner" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	<section id="mirrage" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
-		<h2>The Last Summoner</h2>
-		<iframe width="400" height="225" src="http://www.youtube.com/embed/15nltDbaaoU?enablejsapi=1&loop=true" frameborder="0" allowfullscreen class="pf_video"></iframe>
-		<img width="400" height="225" src="preview_last_summoner.png" class="pf_preview"/>
+		<h2>Mirrage (2017 - Now)</h2>
+		<iframe width="500" height="280" src="http://www.youtube.com/embed/lRZGpQ0QQm0?enablejsapi=1&loop=1&playlist=gHHLuwjDiZo&showinfo=0&autoplay=1&controls=0" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_mirrage.jpeg" class="pf_preview"/>
 		<div>
-			<p>A top-down puzzle game developed during the Global Game Jam 2016</p>
-			<label>Download:</label> <span class="label_value"><a href="http://globalgamejam.org/2016/games/last-summoner">Project page</a></span><br/>
-			<label>Timeframe:</label> <span class="label_value">48 hours</span><br/>
-			<label>Teamsize:</label> <span class="label_value">4 programmers</span><br/>
-			<label>My role:</label> <span class="label_value">Gameplay programmer</span><br/>
+			<p>A Vulkan based 3D renderer and simple game engine featuring screen space global illumination.</p>
+			<label>Website:</label> <a href="https://gitlab.com/lowkey42/mirrage">GitLab</a> <br/>
+			<label>Timeframe:</label> <span class="label_value">2 years +</span><br/>
+			<label>Teamsize:</label> <span class="label_value">1 programmer</span><br/>
 			
-			<p>TODO: short description</p>
+			<p>Mirrage (Mirrage Indirect Radiance Renderer And Game Engine) is a Vulkan based deferred renderer with bits and pieces of a simple game engine, that has been developed as part of my CS Bachelor thesis about screen-space global illumination in 2017.</p>
 			
 			<p>
 				Features:
 				<ul>
-					<li>TODO</li>
+					<li>Defered renderer</li>
+					<li>Skeletal animations</li>
+					<li>Easily extensible data oriented entity component system</li>
+					<li>Diffuse and specular global Illumination with screen space raytracing</li>
+					<li>GPGPU particles</li>
+					<li>Weight base order independent transparency</li>
+					<li>Depth of field</li>
+					<li>Visiblity matching tone mapping based on histogram equalization</li>
 				</ul>
 			</p>
 		</div>
 		<div class="pf_fadeout" />
 	</section>
 	
-	<section id="vi-olbaid" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	<section id="shhhinobi" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
-		<h2>VI Olbaid</h2>
-		<iframe width="400" height="225" src="http://www.youtube.com/embed/15nltDbaaoU?enablejsapi=1&loop=true" frameborder="0" allowfullscreen class="pf_video"></iframe>
-		<img width="400" height="225" src="todo.png" class="pf_preview"/>
+		<h2>Shhhinobi (2017)</h2>
+		<iframe width="500" height="280" src="http://www.youtube.com/embed/r_tCyxPco-0?enablejsapi=1&loop=1&playlist=r_tCyxPco-0&showinfo=0&autoplay=1&controls=0" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_shhhinobi.png" class="pf_preview"/>
 		<div>
-			<p>A 3D dungeon crawler developed during a 7 day game jam.</p>
-			<label>Download:</label> <span class="label_value">-</span><br/>
-			<label>Timeframe:</label> <span class="label_value">7 days</span><br/>
-			<label>Teamsize:</label> <span class="label_value">TODO</span><br/>
-			<label>My role:</label> <span class="label_value">Gameplay programmer (including level generation) and renderer optimization</span><br/>
+			<p>Shhh! You're a Ninja and no one can see you but so is everyone else. At least until you move! You are fast and deadly, to win you need to make smart moves and take out your opponents with your weapon.</p>
+			<p>Meet with up to 8 of your friends and brutally murder them from the shadows in this arena plattformer in which everyone is invisible until they move.</p>
+			<label>Website:</label> <span class="label_value">
+				<a class="pf_download_link" href="http://globalgamejam.org/2017/games/shhhinobi">GGJ17</a>
+				<a class="pf_download_link" href="https://github.com/compix/NINJA">GitHub</a>
+			</span><br/>
+			<label>Download:</label> <span class="label_value">
+				<a class="pf_download_link" href="https://github.com/compix/NINJA/releases">Windows/Linux/source</a>
+				<a class="pf_download_link" href="https://www.airconsole.com/play/battle-games/shhhinobi">AirConsole (WebGL)</a>
+			</span><br/>
+			<label>Timeframe:</label> <span class="label_value">48 hours +</span><br/>
+			<label>Teamsize:</label> <span class="label_value">2 programmers, 2 artists</span><br/>
 			
-			<p>A very simple 3D dungeon crawler heavily inspired by games like Diablo.</p>
-			
-			<p>
-				Features:
-				<ul>
-					<li>3D engine based on a previous game jam</li>
-					<li>Prozedural level generation</li>
-					<li>Swarm based enemy AI</li>
-					<li>Dynamicaly generated 3D tiles (combined from several building blocks)</li>
-					<li>Skeletal animations</li>
-					<li>Defered renderer</li>
-					<li>Varriance soft shadow mapping</li>
-				</ul>
-			</p>
+			<p>A party arena plattformer that has been initialy developed during the 2017 Global Game Jam and has later been extended and adapted to AirConsole.</p>
 		</div>
 		<div class="pf_fadeout" />
 	</section>
 	
 	<section id="magnum-opus" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
-		<h2>Magnum Opus</h2>
-		<iframe width="400" height="225" src="http://www.youtube.com/embed/15nltDbaaoU?enablejsapi=1&loop=true" frameborder="0" allowfullscreen class="pf_video"></iframe>
-		<img width="400" height="225" src="todo.png" class="pf_preview"/>
+		<h2>Magnum Opus (2015)</h2>
+		<iframe width="500" height="280" src="http://www.youtube.com/embed/TXaIRCCGJPI?enablejsapi=1&loop=1&playlist=TXaIRCCGJPI&showinfo=0&autoplay=1&controls=0" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_magnum_opus.png" class="pf_preview"/>
 		<div>
-			<p>A 2D top-down twin-stick shooter</p>
-			<label>Download:</label> <span class="label_value"><a href="">TODO</a> <a href="">TODO</a></span><br/>
-			<label>Timeframe:</label> <span class="label_value">6 month (part-time)</span><br/>
+			<p>A 2D twin-stick shooter in which the player has to collect raw elements (fire, water, stone, ...) and combine them for stronger attacks.</p>
+			
+			<label>Download:</label> <span class="label_value">
+				<a class="pf_download_link" href="demos/MagnumOpus.html">WebGL</a>
+				<a class="pf_download_link" href="https://github.com/lowkey42/MagnumOpus">GitHub</a>
+			</span><br/>
+			<label>Timeframe:</label> <span class="label_value">3 month (part-time)</span><br/>
 			<label>Teamsize:</label> <span class="label_value">2 programmers</span><br/>
-			<label>My role:</label> <span class="label_value">Lead programmer and game designer</span><br/>
-			
-			<p>A 2D twin-stick shooter in which the player has to collect a number of raw elements (fire, water, stone, ...) and combine them for stronger attacks.</p>
-			
+						
 			<p>
 				Features:
 				<ul>
 					<li>Complex combat system</li>
 					<li>OpenGL, SDL and C++ based 2D engine written from scratch</li>
 					<li>Online highscore list</li>
-					<li>Prozedural level generation</li>
+					<li>Procedural level generation</li>
 				</ul>
 			</p>
 		</div>
 		<div class="pf_fadeout" />
 	</section>
 	
-	<section id="stackt-racer" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
-	         onmouseover="on_pf_entry_mouseover(this)" onmouseout="on_pf_entry_mouseout(this)">
-		<h2>Stackt Racer</h2>
-		<iframe width="400" height="225" src="http://www.youtube.com/embed/15nltDbaaoU?enablejsapi=1&loop=true" frameborder="0" allowfullscreen class="pf_video"></iframe>
-		<img width="400" height="225" src="todo.png" class="pf_preview"/>
-		<div>
-			<p>A 3D racing game developed during a 7 day game jam.</p>
-			<lable>Download:</label> <span class="label_value"><a href="">TODO</a></span><br/>
-			<lable>Timeframe:</label> <span class="label_value">7 days</span><br/>
-			<lable>Teamsize:</label> <span class="label_value">TODO</span><br/>
-			<lable>My role:</label> <span class="label_value">Gameplay programmer</span><br/>
-			
-			<p>A 3D racing game for 1-4 players. The game features a simple steering system, items, bezier-curve based track-layouts and a 3D engine that has been written from scratch using C++, SDL and OpenGL during the game jam.</p>
-		</div>
-		<div class="pf_fadeout" />
-	</section>
 </div>
 </div>
 
@@ -222,6 +229,8 @@ group: navigation
 			on_pf_entry_click(undefined, e);
 		}
 	}
+	
+	on_resize();
 	
 </script>
 

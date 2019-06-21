@@ -9,14 +9,15 @@ highlighter: rouge
 # so be sure to set them if your theme uses them.
 #
 title : SecondSystem
-tagline: Yet another devblog
+tagline: Building worlds from bits and dust
 author :
   name : Florian Oetke
-  email : mephistopheles@onlinehome.de
+  email : f.oetke@second-system.de
   github : lowkey42
+  gitlab : lowkey42
 
 paginate: 15
-gems:
+plugins:
   - jekyll-paginate
 paginate_path: "/blog/page:num/"
 
