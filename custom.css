@@ -265,6 +265,7 @@ a {
 
 body {
 	min-width: 600px;
+	position: relative;
 }
 
 @media screen and (min-width: 48em) {
