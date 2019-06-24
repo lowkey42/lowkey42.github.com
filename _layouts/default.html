@@ -1,6 +1,21 @@
----
-theme :
-  name : hooligan
----
-{% include JB/setup %}
-{% include themes/hooligan/default.html %}
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    {% include head.html %}
+    {% for sheet in page.css %}
+      <link rel='stylesheet' href='{{ site.baseurl }}/assets/css/{{ sheet }}.css'>
+    {% endfor %}
+  </head>
+  <body>
+    <div id='site-header-bg' class='site-header-bg'></div>
+    <div class='layout'>
+      {% include sections/header.html %}
+      <div id='site-main' class='pure-g site-main'>
+        <div id='site-container' class='pure-u-1 site-container'>
+          {{ content }}
+        </div>
+      </div>
+      {% include sections/footer.html %}
+    </div>
+  </body>
+</html>

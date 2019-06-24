@@ -1,0 +1,55 @@
+{% unless site.layout.sidebar.style == 'disabled' %}
+  <div id='site-sidebar' class='pure-u site-sidebar'>
+    <label for='reveal-sidebar-checkbox' class='reveal-sidebar'>
+      <i class='fa fa-2x fa-bars'></i>
+    </label>
+    <input type='checkbox' id='reveal-sidebar-checkbox' value='button'>
+
+    <div class='sidebar-contents'>
+      <div class='vertical-menu'>
+        <ul class='menu-list'>
+
+		{% for post in site.posts  %}
+			{% capture this_year %}{{ post.date | date: "%Y" }}{% endcapture %}
+			{% capture this_month %}{{ post.date | date: "%B" }}{% endcapture %}
+			{% capture next_year %}{{ post.previous.date | date: "%Y" }}{% endcapture %}
+			{% capture next_month %}{{ post.previous.date | date: "%B" }}{% endcapture %}
+		  
+			{% if forloop.first %}
+		   <li class='menu-heading'>{{this_year}} </li>
+			{% endif %}
+  
+            <li class='menu-item'>
+              <a class='menu-link' href='{{ BASE_PATH }}{{ post.url }}'>
+                {{ post.date | date: "%B %e" }} &ndash; {{ post.title }}
+              </a>
+            </li>
+            
+			{% if forloop.last %}
+			{% else %}
+			  {% if this_year != next_year %}
+			  	<li class='menu-spacer'></li>
+		   		<li class='menu-heading'>{{next_year}} </li>
+			  {% endif %}
+			{% endif %}
+		  {% endfor %}
+		  
+			  	<li class='menu-spacer'></li>
+		  <li class='menu-separator'></li>
+		   <li class='menu-heading'>Tags</li>
+		   
+		  {% if site.tags.first[0] == null %}
+			{% for tag in site.tags %} 
+				<li class='menu-item'><a class='menu-link' href="{{ BASE_PATH }}{{ site.JB.tags_path }}#{{ tag }}-ref">{{ tag }} </a></li>
+			{% endfor %}
+		  {% else %}
+			{% for tag in site.tags %} 
+				<li class='menu-item'><a class='menu-link' href="{{ BASE_PATH }}{{ site.JB.tags_path }}#{{ tag[0] }}-ref">{{ tag[0] }} </a></li>
+			{% endfor %}
+		  {% endif %}
+		  
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endunless %}

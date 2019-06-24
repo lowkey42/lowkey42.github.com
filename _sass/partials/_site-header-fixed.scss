@@ -1,0 +1,30 @@
+/* Vars-Required-From:
+ *   . { site-header }
+ *
+ * Vars-Set-From:
+ *   Nil
+ */
+
+@import "partials/site-header";
+
+// TODO: Verify / Calculate
+$header-height: 80;
+$header-height-medium-screen: 72;
+@if $site-tagline == 0 {
+  $header-height: 60;
+  $header-height-medium-screen: 50;
+}
+
+.site-header {
+  padding-bottom: 0px;
+  position: fixed;
+  height: $header-height + px;
+
+  @include media(medium) {
+    height: $header-height-medium-screen + px;
+  }
+}
+
+$site-header-vspace: $header-height + $header-border-height;
+$site-header-vspace-small-screen: $header-height + $header-border-height;
+$site-header-vspace-medium-screen: $header-height-medium-screen + $header-border-height;

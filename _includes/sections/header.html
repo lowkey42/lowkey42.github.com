@@ -1,0 +1,38 @@
+{% unless site.layout.header.style == 'disabled' %}
+  <div id='site-header' class='site-header'>
+    <div class='pure-g site-header-container'>
+
+      <div id='top-nav-title' class='pure-u-1-1 pure-u-md-1-2 text-align-left-medium'>
+        <a class='site-header-title' href='{{ site.baseurl }}/'>{{ site.title }}</a>
+        {% if site.tagline %}
+          <div class='site-header-subtitle'>{{ site.tagline }}</div>
+        {% endif %}
+      </div>
+
+      <div id='top-nav-menu' class='pure-u-1-1 pure-u-md-1-2 site-header-links text-align-right-medium'>
+          <ul class="nav">
+            {% assign pages_list = site.pages %}
+            {% assign group = 'navigation' %}
+            {% include JB/pages_list %}
+        
+            <li class="divider-vertical"></li>
+            {% if site.author.gitlab %}
+            <li>
+              <a href="https://gitlab.com/{{ site.author.github }}" target="_blank" rel="noopener noreferrer">
+                <span>GitLab</span>
+              </a>
+            </li>
+            {% endif %}
+            {% if site.author.github %}
+            <li>
+              <a href="https://github.com/{{ site.author.github }}" target="_blank" rel="noopener noreferrer">
+                <span>GitHub</span>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+      </div>
+
+    </div>
+  </div>
+{% endunless %}
