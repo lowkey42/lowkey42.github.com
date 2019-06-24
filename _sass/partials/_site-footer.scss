@@ -1,0 +1,27 @@
+/* Vars-Required-From:
+ *   . base
+ *
+ * Vars-Set-From:
+ *   Nil
+ */
+
+$footer-border-height: $default-border-thickness;
+
+.site-footer {
+  background-color: $site-color-background;
+  border-top: ($footer-border-height + px) solid fade-out($site-color-highlight, $default-color-delta-huge / 100);
+  bottom: 0px;
+  font-size: 0.725rem;
+  max-width: inherit;
+  width: 100%;
+  z-index: 1;
+
+  .site-footer-container {
+    margin: 0;
+    padding-top: 1px;
+
+    @include media(small) {
+      margin: 0 ($default-gap-medium + px);
+    }
+  }
+}

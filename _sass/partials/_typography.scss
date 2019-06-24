@@ -1,0 +1,36 @@
+html {
+  font-size: 14px;
+
+  @include media(medium) {
+    font-size: 16px;
+  }
+}
+
+html, button, input, select, textarea,
+.pure-g [class*="pure-u"] {
+  font-family: $site-font-stack-base;
+}
+
+code, kbd, pre, samp {
+  font-family: $site-font-stack-mono;
+}
+
+a {
+  text-decoration: none;
+}
+
+#{headings()} {
+  margin: 1rem 0 -0.5rem 0;
+  font-family: $site-font-stack-head;
+  font-weight: bold;
+}
+
+@include set_heading_font_sizes();
+
+.page-icon {
+  color: lighten($site-color-foreground, $default-color-delta-medium);
+}
+
+.text-align-center {
+  text-align: center;
+}

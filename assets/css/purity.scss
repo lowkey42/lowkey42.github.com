@@ -1,0 +1,46 @@
+---
+---
+
+/* Load the user-specified, or default fonts */
+
+{% assign base_font = site.fonts.base | default: 'sans-serif' %}
+{% assign head_font = site.fonts.head | default: 'sans-serif' %}
+{% assign mono_font = site.fonts.mono | default: 'monospace' %}
+
+@import 'https://fonts.googleapis.com/css?family={{ base_font | uri_escape }}:400,700,400italic|{{ head_font | uri_escape }}:400,700,400italic|{{ mono_font | uri_escape }}:400,700,400italic';
+
+$site-font-stack-base: '{{ base_font }}', sans-serif;
+$site-font-stack-head: '{{ head_font }}', sans-serif;
+$site-font-stack-mono: '{{ mono_font }}', monospace;
+
+
+/* Pass information from Jekyll to SASS */
+
+$site-tagline: {{ site.tagline | default: '' | size }};
+$site-tooltips: {{ site.theme.tooltips | default: 'enabled' }};
+$site-hover-light: {{ site.theme.hover_light | default: 'enabled' }};
+$site-sidebar-side: {{ site.layout.sidebar.style | default: 'left' }};
+
+/* Now load rest of the modules -- @import order matters!! */
+
+@import 'libs.scss';
+
+@import 'partials/base';
+@import 'partials/palette';
+@import 'partials/menu';
+@import 'partials/tooltips';
+@import 'partials/highlight';
+@import 'partials/typography';
+
+{% assign sections = 'header footer sidebar' | split: ' ' %}
+{% for section in sections %}
+  {% unless site.layout[section].style == 'disabled' %}
+    {% if site.layout[section].style == 'fixed' %}
+      @import 'partials/site-{{ section }}-fixed';
+    {% else %}
+      @import 'partials/site-{{ section }}';
+    {% endif %}
+  {% endunless %}
+{% endfor %}
+
+@import 'partials/layout';

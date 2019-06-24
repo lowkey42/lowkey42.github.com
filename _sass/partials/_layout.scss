@@ -1,0 +1,56 @@
+/* Vars-Required-From:
+ *   . base
+ *   . palette
+ *
+ * Vars-Set-From:
+ *   . site-header
+ *   . site-header-fixed
+ *   . site-footer
+ *   . site-footer-fixed
+ *   . site-sidebar
+ */
+
+.layout {
+  margin: 0 auto;
+  max-width: $site-max-width + px;
+  width: 100%;
+}
+
+.site-main {
+  @include media(small) {
+    margin: ($site-header-vspace-small-screen + px) ($default-gap-thick + px) ($site-footer-vspace-small-screen + px) ($default-gap-thick + px);
+  }
+
+
+  @include media(medium) {
+    margin: ($site-header-vspace-medium-screen + px) ($default-gap-thick + px) ($site-footer-vspace-medium-screen + px) ($default-gap-thick + px);
+  }
+
+
+  margin: ($site-header-vspace + px) ($default-gap-thick + px) ($site-footer-vspace + px) ($default-gap-thick + px);
+  z-index: 0;
+
+  img {
+    border: ($default-border-thickness + px) solid $site-color-highlight;
+    border-radius: 0.5em;
+    margin: 0.25rem;
+  }
+}
+
+.site-container {
+  box-sizing: border-box;
+  width: 100%;
+
+  li {
+    margin: 0.2em 0;
+  }
+
+  @include media(medium) {
+    @if $site-sidebar-side == right {
+      padding-right: $site-sidebar-width + $site-sidebar-border-width + $default-gap-thick + px;
+    }
+    @else {
+      padding-left: $site-sidebar-width + $site-sidebar-border-width + $default-gap-thick + px;
+    }
+  }
+}

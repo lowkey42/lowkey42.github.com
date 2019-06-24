@@ -5,6 +5,13 @@ permalink: /:categories/:year/:month/:day/:title
 exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
 highlighter: rouge
 
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+sass:
+  style: compressed
+
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
@@ -15,6 +22,9 @@ author :
   email : f.oetke@second-system.de
   github : lowkey42
   gitlab : lowkey42
+  photo:
+    alt:    TODO
+    remote: https://avatars3.githubusercontent.com/u/1577944
 
 paginate: 15
 plugins:
@@ -29,7 +39,85 @@ paginate_path: "/blog/page:num/"
 # Else if you are pushing to username.github.io, replace with your username.
 # Finally if you are pushing to a GitHub project page, include the project name at the end.
 #
-production_url : http://lowkey42.github.io
+production_url : https://second-system.de
+
+
+theme:
+  tooltips:    enabled
+  hover_light: disabled
+  
+layout:
+  header:
+    style: scroll
+  sidebar:
+    style: left
+
+topmenu:
+  Local:
+    About:
+      local: aboutme.html
+      title: 'About me'
+      icon:  git
+    Blog:
+      local:   index.html
+      title: 'Blog'
+      icon:  git
+    Portfolio:
+      local:   portfolio.html
+      title: 'Portfolio'
+      icon:  git
+      
+  Spacer:
+      type:  spacer
+  Extern:
+    GitHub:
+      url:   https://github.com/SaswatPadhi/purity-jekyll-theme
+      title: 'Purity repo on GitHub'
+      icon:  git
+    GitLab:
+      url:   https://github.com/SaswatPadhi/purity-jekyll-theme
+      title: 'Purity repo on GitHub'
+      icon:  git
+
+sidemenu:
+  Test Pages:
+    code_test:
+      local: tests/code.md
+  Links:
+    personal:
+      url:   /
+      title: My website
+      icon:  user
+    split_1:
+      type:  spacer
+    github:
+      url:   https://github.com
+      title: GitHub
+      icon:  github
+    bitbucket:
+      url:   https://bitbucket.com
+      title: BitBucket
+      icon:  bitbucket
+    split_2:
+      type:  separator
+    google:
+      url:   https://google.com
+      title: Google
+      icon:  google
+    microsoft:
+      url:   https://microsoft.com
+      title: Microsoft
+      icon:  windows
+    split_3:
+      type:  separator
+    html5:
+      url:   https://en.wikipedia.org/wiki/HTML5
+      title: HTML5 (Wiki)
+      icon:  html5
+    css:
+      url:   https://en.wikipedia.org/wiki/Cascading_Style_Sheets
+      title: CSS (Wiki)
+      icon:  css3
 
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #

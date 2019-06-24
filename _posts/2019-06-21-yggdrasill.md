@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: post
 title: "Yggdrasill"
 tagline: "Building worlds from bits and dust"
 category: "yggdrasill"
