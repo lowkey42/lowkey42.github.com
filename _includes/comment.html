@@ -8,29 +8,27 @@
       <img src="/assets/images/avatar-60.png" srcset="/assets/images/avatar-120.png 2x" alt="{{ include.name | escape }}">
     {% endif %}
   </div>
-  <h3 class="comment__author-name">
-    {% unless include.url == blank %}
-      <a rel="external nofollow" href="{{ include.url }}">
-        {% if include.name == site.author.name %}<svg class="icon" width="20px" height="20px"><use xlink:href="#icon-mistake"></use></svg> {% endif %}{{ include.name }}
-      </a>
-    {% else %}
-      {% if include.name == site.author.name %}<svg class="icon" width="20px" height="20px"><use xlink:href="#icon-mistake"></use></svg> {% endif %}{{ include.name }}
-    {% endunless %}
-  </h3>
-  <div class="comment__timestamp">
-    {% if include.date %}
-      {% if include.index %}<a href="#comment{% if r %}{{ index | prepend: '-' }}{% else %}{{ include.index | prepend: '-' }}{% endif %}" title="Permalink to this comment">{% endif %}
-      <time datetime="{{ include.date | date_to_xmlschema }}">{{ include.date | date: '%B %d, %Y' }}</time>
-      {% if include.index %}</a>{% endif %}
-    {% endif %}
-  </div>
-  <div class="comment__content">
-    {{ include.message | markdownify }}
-  </div>
-  {% unless include.replying_to != 0 or page.comments_locked == true %}
-    <div class="comment__reply">
-      <a rel="nofollow" class="btn" href="#comment-{{ include.index }}" onclick="return addComment.moveForm('comment-{{ include.index }}', '{{ include.index }}', 'respond', '{{ page.slug }}')">Reply to {{ include.name }}</a>
-    </div>
+  <div class="comment_main">
+  	<div class="comment__meta">
+  		<strong class="comment__author-name">
+  			{% if include.name == site.author.name %}<svg class="icon" width="20px" height="20px"><use xlink:href="#icon-mistake"></use></svg> {% endif %}{{ include.name }}
+  		</strong> on 
+  		
+		{% if include.date %}
+		  {% if include.index %}<a href="#comment{% if r %}{{ index | prepend: '-' }}{% else %}{{ include.index | prepend: '-' }}{% endif %}" title="Permalink to this comment">{% endif %}
+		  <time datetime="{{ include.date | date_to_xmlschema }}">{{ include.date | date: '%Y-%m-%d' }}</time>
+		  {% if include.index %}</a>{% endif %}
+		{% endif %}	
+  	</div>
+
+	  <div class="comment__content">
+		{{ include.message | markdownify }}
+	  </div>
+	  {% unless include.replying_to != 0 or page.comments_locked == true %}
+		<div class="comment__reply">
+		  <a rel="nofollow" class="btn" href="#comment-{{ include.index }}" onclick="return addComment.moveForm('comment-{{ include.index }}', '{{ include.index }}', 'respond', '{{ page.slug }}')">Reply to {{ include.name }}</a>
+		</div>
+	</div>
   {% endunless %}
 </article>
 
