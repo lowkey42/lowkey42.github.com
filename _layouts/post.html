@@ -1,33 +1,8 @@
-<!DOCTYPE html>
-<html lang="en-US">
-  <head>
-    {% include head.html %}
-    {% for sheet in page.css %}
-      <link rel='stylesheet' href='{{ site.baseurl }}/assets/css/{{ sheet }}.css'>
-    {% endfor %}
-  </head>
-  <body>
-	{% include JB/setup %}
+---
+layout: blog
+---
 
-    <div id='site-header-bg' class='site-header-bg'></div>
-    <div class='layout'>
-      {% include sections/header.html %}
-      <div id='site-main' class='pure-g site-main'>
-        {% assign site-sidebar-side = site.layout.sidebar.style | default: 'left' %}
-        {% if site-sidebar-side == 'left' %}
-          {% include sections/sidebar.html %}
-        {% endif %}
-        <div id='site-container' class='pure-u-1 site-container post-site'>
-			<div class="page-header">
-				<h1>{% if page.icon %}<i class="page-icon fa fa-fw fa-{{ page.icon }}"></i>{% endif %} {{ page.title }} {% if page.tagline %} <small>{{ page.tagline }}</small>{% endif %}</h1>
-		  	</div>
-			{{ content }}
-        </div>
-        {% if site-sidebar-side == 'right' %}
-          {% include sections/sidebar.html %}
-        {% endif %}
-      </div>
-      {% include sections/footer.html %}
-    </div>
-  </body>
-</html>
+{{ content }}
+
+{% include page__comments.html %}
+
