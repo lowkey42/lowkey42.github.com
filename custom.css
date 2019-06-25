@@ -193,6 +193,9 @@
     background-color: unset;
     border: none !important;
 }
+.site-header-container {
+    margin: 0 10px !important;
+}
 
 .site-header-title {
 	font-size: 0.75em !important;

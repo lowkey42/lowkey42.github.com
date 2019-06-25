@@ -1,10 +1,10 @@
 ---
 layout: page
-title: About me
-header: About me
+title: About
+header: About
 group: navigation
 ---
-{% include JB/setup %}
+
 
 I'm a programme with a solid background in enterprise application development (6 years, mostly with JavaEE) and a passion for game dev (15 years, mostly C++, OpenGL und Vulkan).
 

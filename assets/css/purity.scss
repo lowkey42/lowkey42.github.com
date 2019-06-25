@@ -7,8 +7,6 @@
 {% assign head_font = site.fonts.head | default: 'sans-serif' %}
 {% assign mono_font = site.fonts.mono | default: 'monospace' %}
 
-@import 'https://fonts.googleapis.com/css?family={{ base_font | uri_escape }}:400,700,400italic|{{ head_font | uri_escape }}:400,700,400italic|{{ mono_font | uri_escape }}:400,700,400italic';
-
 $site-font-stack-base: '{{ base_font }}', sans-serif;
 $site-font-stack-head: '{{ head_font }}', sans-serif;
 $site-font-stack-mono: '{{ mono_font }}', monospace;

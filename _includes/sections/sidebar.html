@@ -20,7 +20,11 @@
 			{% endif %}
   
             <li class='menu-item'>
+              {% if post.url != page.url %}
               <a class='menu-link' href='{{ BASE_PATH }}{{ post.url }}'>
+              {% else %}
+              <a class="menu-link" style="font-weight:bold">
+              {% endif %}
                 {{ post.date | date: "%B %e" }} &ndash; {{ post.title }}
               </a>
             </li>
@@ -38,15 +42,18 @@
 		  <li class='menu-separator'></li>
 		   <li class='menu-heading'>Tags</li>
 		   
-		  {% if site.tags.first[0] == null %}
-			{% for tag in site.tags %} 
-				<li class='menu-item'><a class='menu-link' href="{{ BASE_PATH }}{{ site.JB.tags_path }}#{{ tag }}-ref">{{ tag }} </a></li>
-			{% endfor %}
-		  {% else %}
-			{% for tag in site.tags %} 
-				<li class='menu-item'><a class='menu-link' href="{{ BASE_PATH }}{{ site.JB.tags_path }}#{{ tag[0] }}-ref">{{ tag[0] }} </a></li>
-			{% endfor %}
-		  {% endif %}
+		   {% for tag in site.tags %}		   
+				<li class='menu-item'>
+           			{% if tag[0]!=page.title %}
+					<a class='menu-link' href="{{ BASE_PATH }}/tag/{{ tag[0] }}">
+					{% else %}
+					<a class='menu-link' style="font-weight:bold">
+					{% endif %}
+					
+						{{ tag[0] }}
+					</a>
+				</li>
+		   {% endfor %}
 		  
         </ul>
       </div>
