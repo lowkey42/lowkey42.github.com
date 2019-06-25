@@ -273,7 +273,7 @@ button {
 }
 
 #comment-form  label {
-	width: 10em;
+	width: 12em;
 	display: inline-block;
 }
 fieldset {
@@ -287,6 +287,25 @@ fieldset > textarea {
 }
 fieldset > input {
 	width: 50%;
+}
+input[type="text"], input[type="email"], textarea {
+    -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    background: #202020;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+	padding: 0.5em;
+}
+button {
+    -webkit-box-shadow: rgba(0, 0, 0, 0.8) 0 1px 0, rgba(255, 255, 255, 0.1) 0 1px 7px 0px inset;
+    -moz-box-shadow: rgba(0, 0, 0, 0.8) 0 1px 0, rgba(255, 255, 255, 0.1) 0 1px 7px 0px inset;
+    box-shadow: rgba(0, 0, 0, 0.8) 0 1px 0, rgba(255, 255, 255, 0.1) 0 1px 7px 0px inset;
+    background: #202020;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+	padding: 0.5em;
+	color: white;
 }
 
 .child {
