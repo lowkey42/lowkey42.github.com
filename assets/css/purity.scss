@@ -24,6 +24,7 @@ $site-sidebar-side: {{ site.layout.sidebar.style | default: 'left' }};
 /* Now load rest of the modules -- @import order matters!! */
 
 @import 'libs.scss';
+@import 'custom.scss';
 
 @import 'partials/base';
 @import 'partials/palette';

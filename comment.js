@@ -20,13 +20,13 @@ ready(function() {
 		event.preventDefault();
 		
 		form.classList.add("disabled");
-		document.getElementById("comment-form-submit").innerHTML = '<svg class="icon spin"><use xlink:href="#icon-loading"></use></svg> Loading...';
+		document.getElementById("comment-form-submit").innerHTML = '<img class="icon spin" alt="" src="/assets/icons/loading.svg"> Loading...';
 
 		var request = new XMLHttpRequest();
 		request.open('POST', form.action, true);
 		request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		request.onload = function() {
-			if (this.status >= 200 && this.status < 400) {
+			if (this.status < 400) {
 				document.getElementById("comment-form-submit").innerHTML = 'Submitted';
 				document.getElementById("comment-form-submit").classList.add("btn--disabled");
 				
@@ -37,7 +37,7 @@ ready(function() {
 		    
 			} else {
 				// We reached our target server, but it returned an error
-				console.log(err);
+				console.log("HTTP error posting comment: "+status);
 				document.getElementById("comment-form-submit").innerHTML = 'Submit Comment';
 				document.getElementById("comment-form-submit").classList.add("btn--disabled");
 				
