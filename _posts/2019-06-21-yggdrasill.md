@@ -2,7 +2,6 @@
 layout: post
 title: "Yggdrasill"
 tagline: "Building worlds from bits and dust"
-category: "yggdrasill"
 tags: [yggdrasill]
 excerpt_separator: <!--more-->
 ---

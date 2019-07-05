@@ -19,12 +19,9 @@ title : SecondSystem
 tagline: Building worlds from bits and dust
 author :
   name : Florian Oetke
-  email : f.oetke@second-system.de
+  email : admin@second-system.de
   github : lowkey42
   gitlab : lowkey42
-  photo:
-    alt:    TODO
-    remote: https://avatars3.githubusercontent.com/u/1577944
 
 paginate: 15
 plugins:
@@ -79,46 +76,6 @@ topmenu:
       title: 'Purity repo on GitHub'
       icon:  git
 
-sidemenu:
-  Test Pages:
-    code_test:
-      local: tests/code.md
-  Links:
-    personal:
-      url:   /
-      title: My website
-      icon:  user
-    split_1:
-      type:  spacer
-    github:
-      url:   https://github.com
-      title: GitHub
-      icon:  github
-    bitbucket:
-      url:   https://bitbucket.com
-      title: BitBucket
-      icon:  bitbucket
-    split_2:
-      type:  separator
-    google:
-      url:   https://google.com
-      title: Google
-      icon:  google
-    microsoft:
-      url:   https://microsoft.com
-      title: Microsoft
-      icon:  windows
-    split_3:
-      type:  separator
-    html5:
-      url:   https://en.wikipedia.org/wiki/HTML5
-      title: HTML5 (Wiki)
-      icon:  html5
-    css:
-      url:   https://en.wikipedia.org/wiki/Cascading_Style_Sheets
-      title: CSS (Wiki)
-      icon:  css3
-
 # All Jekyll-Bootstrap specific configurations are namespaced into this hash
 #
 JB :
@@ -162,9 +119,9 @@ JB :
   # These paths are to the main pages Jekyll-Bootstrap ships with.
   # Some JB helpers refer to these paths; change them here if needed.
   #
-  archive_path: /index_archive.html
-  categories_path : /index_archive.html
-  tags_path : /index_archive.html
+  archive_path: /index.html
+  categories_path : /index.html
+  tags_path : /index.html
   atom_path : /atom.xml
   rss_path : /rss.xml
 
@@ -172,10 +129,6 @@ JB :
   # Set 'provider' to the comment provider you want to use.
   # Set 'provider' to false to turn commenting off globally.
   #
-  comments :
-    provider : disqus
-    disqus :
-      short_name : secondsystem
    
   # Settings for analytics helper
   # Set 'provider' to the analytics provider you want to use.
