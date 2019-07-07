@@ -15,6 +15,8 @@ function showAlert(message) {
 
 ready(function() {
 	var form = document.getElementById("comment-form");
+	if(!form)
+		return;
 	
 	form.onsubmit = function(event) {
 		event.preventDefault();

@@ -5,7 +5,6 @@ header: About
 group: navigation
 ---
 
+My name is Florian Oetke, I’m a German CS student at the Trier University of Applied Sciences.
 
-I'm a programme with a solid background in enterprise application development (6 years, mostly with JavaEE) and a passion for game dev (15 years, mostly C++, OpenGL und Vulkan).
-
-<a href="http://www.xing.com/profile/Florian_Oetke" target="_blank" rel="me"><img src="http://www.xing.com/img/buttons/1_de_btn.gif" width="85" height="23" alt="Florian Oetke"></a>
+I have some professional experience in enterprise application development (mostly with JavaEE) and dabbled a bit in game design but my main interest lies in game/engine programming and C++ in general. Some of my projects can be found <a href="/portfolio">here</a> and if you would like to get in touch just send me an <a href="mailto:admin@second-system.de">e-mail</a> or contact me through <a href="http://www.xing.com/profile/Florian_Oetke" rel="noopener noreferrer">Xing</a>, <a href="https://gitlab.com/lowkey42" rel="noopener noreferrer">GitLab</a> or <a href="https://github.com/lowkey42" rel="noopener noreferrer">GitHub</a>.
