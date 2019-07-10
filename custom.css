@@ -53,23 +53,24 @@
 }
 
 .pf_entry > .pf_video {
-	display: none;
+	z-index: -1;
+	position: absolute;
+	left: 0;
 }
 .pf_entry:hover > .pf_video {
-	display: block !important;
+	z-index: 1;
 }
 .pf_active > .pf_video {
-	display: block !important;
+	z-index: 1;
 }
 
 .pf_entry > .pf_preview {
 	display: block;
+	z-index: 0;
 }
 .pf_entry:hover > .pf_preview {
-	display: none !important;
 }
 .pf_active > .pf_preview {
-	display: none !important;
 }
 
 .pf_active {
@@ -113,7 +114,7 @@
 }
 
 .pf_download_link {
-	padding-right: 16px;
+	padding-right: 24px;
 }
 
 .pf_teaser {
@@ -361,6 +362,12 @@ button {
 		
 	.post-site {
 		padding-left: 259px !important;
+	}
+}
+
+@media screen and (min-width: 2100px) {
+	.layout_portfolio {
+		max-width: 2080px;
 	}
 }
 
