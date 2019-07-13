@@ -280,6 +280,14 @@ a {
     margin-top: 10em;
 }
 
+table {
+	border-spacing: 1em 0.2em;
+	border-collapse: separate;
+}
+th {
+    text-align: left;
+}
+
 body {
 	min-width: 600px;
 	position: relative;
