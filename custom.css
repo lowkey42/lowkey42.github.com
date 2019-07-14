@@ -138,6 +138,8 @@
     border: none;
     padding: 20px 20px 10px;
     margin: 0px 0px 20px;
+	margin-left: 0px !important;
+	margin-right: 0px !important;
     z-index: 0;
     -moz-border-radius-bottomleft: 5px;
     -webkit-border-bottom-left-radius: 5px;
@@ -288,6 +290,15 @@ th {
     text-align: left;
 }
 
+p {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+.site-container > * {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
 body {
 	min-width: 600px;
 	position: relative;
@@ -375,7 +386,7 @@ button {
 
 @media screen and (min-width: 2100px) {
 	.layout_portfolio {
-		max-width: 2080px;
+		max-width: 2100px;
 	}
 }
 
