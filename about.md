@@ -5,7 +5,7 @@ header: About
 group: navigation
 ---
 
-Moin! Moin! My name is Florian Oetke. I'm a C++ programmer with a passion for engine architecture and game design and a CS student at Trier University of Applied Sciences.
+Hey! My name is Florian Oetke. I'm a C++ programmer with a passion for engine architecture and game design and a CS student at Trier University of Applied Sciences.
 
 My professional experience lies in enterprise application development (mostly search-engines and document analysis with JavaEE) and I dabbled a bit in game design but my main interest is game/engine/graphics programming and C++ in general.
 
