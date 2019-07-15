@@ -29,9 +29,9 @@ If you would like to get in touch just send me an <a href="mailto:info@second-sy
 | CMake |  | SDL2 |  | GCC / MinGW |
 | Java  	            |   	            | GLFW |  | Emscripten |
 | SQL |  | Unity |  | CMake |
-| C# |  | GLM |  | RenderDoc |
-| HTML5 |  | JPA / Hibernate |  | MySQL / MariaDB |
-| CSS        |  | Spring |  | Tomcat |
+| C# |  | GLM |  | MySQL / MariaDB |
+| HTML5 |  | JPA / Hibernate |  | Tomcat |
+| CSS        |  | Spring |  | RenderDoc |
 | JavaScript |  | Lucene / Solr |  |  |
 | LaTeX |  | GSL |  |  |
 | Bash |  | Assimp |  |  |
@@ -39,4 +39,4 @@ If you would like to get in touch just send me an <a href="mailto:info@second-sy
 |  |  | Doctest |  |  |
 |  |  | PhysicsFS |  |  |
 |  |  | ImGui |  |  |
-|  |  | Boost |  |  |
+|  |  | Nuklear |  |  |
