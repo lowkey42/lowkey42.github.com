@@ -9,7 +9,7 @@ $site-color-background: #2a2a2a;
 $site-color-foreground: #eee;
 $site-color-highlight: #2982A0;
 $site-color-hyperlink: #0B6E4F;
-$site-color-accent: #A52624;
+$site-color-accent: #ed3e3b;
 
 @include make_site_color_faded($default-color-delta-large / 100, ((background, $site-color-background), (foreground, $site-color-foreground), (highlight, $site-color-highlight), (hyperlink, $site-color-hyperlink), (accent, $site-color-accent)));
 
