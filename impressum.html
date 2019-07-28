@@ -1,9 +1,29 @@
 ---
-layout: page
 title: Impressum
 header: Impressum
 ---
-
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    {% include head.html %}
+    {% for sheet in page.css %}
+      <link rel='stylesheet' href='{{ site.baseurl }}/assets/css/{{ sheet }}.css'>
+    {% endfor %}
+    <meta name="robots" content="noindex, nofollow" />
+	<meta name="googlebot" content="noindex" />
+  </head>
+  <body>
+    <div id='site-header-bg' class='site-header-bg'></div>
+    <div class='layout'>
+      {% include sections/header.html %}
+      <div id='site-main' class='pure-g site-main'>
+        <div id='site-container' class='pure-u-1 site-container'>
+        
+	<div class="page-header">
+		<h1>{% if page.icon %}<i class="page-icon fa fa-fw fa-{{ page.icon }}"></i>{% endif %} {{ page.title }} {% if page.tagline %} <small>{{ page.tagline }}</small>{% endif %}</h1>
+  	</div>
+  	
+        
 <p>This is a static website and I don't store any personal or meta data (cookies, analytics, logs, ...). But it's hosted using GitHub Pages, who may log meta data about the connections (IP/Request logs, see the <a href="https://help.github.com/en/articles/github-privacy-statement">
 GitHub Privacy Statement</a> for details) and I include some videos from YouTube who may try to track you. Finally if you decide to post comments on this site additional informations might be stored and processed by the used external services (staticman, mailgun, akismet, reCAPTCHA).</p>
 <br>
@@ -107,3 +127,11 @@ Hierbei verarbeiten wir, bzw. unser Hostinganbieter Bestandsdaten, Kontaktdaten,
 Logfile-Informationen werden aus Sicherheitsgründen (z.B. zur Aufklärung von Missbrauchs- oder Betrugshandlungen) für die Dauer von maximal 7 Tagen gespeichert und danach gelöscht. Daten, deren weitere Aufbewahrung zu Beweiszwecken erforderlich ist, sind bis zur endgültigen Klärung des jeweiligen Vorfalls von der Löschung ausgenommen.</span></p><p></p><h3 id="dsg-thirdparty-einleitung">Einbindung von Diensten und Inhalten Dritter</h3><p></p><p><span class="ts-muster-content">Wir setzen innerhalb unseres Onlineangebotes auf Grundlage unserer berechtigten Interessen (d.h. Interesse an der Analyse, Optimierung und wirtschaftlichem Betrieb unseres Onlineangebotes im Sinne des Art. 6 Abs. 1 lit. f. DSGVO) Inhalts- oder Serviceangebote von Drittanbietern ein, um deren Inhalte und Services, wie z.B. Videos oder Schriftarten einzubinden (nachfolgend einheitlich bezeichnet als “Inhalte”). <br>
 <br>
 Dies setzt immer voraus, dass die Drittanbieter dieser Inhalte, die IP-Adresse der Nutzer wahrnehmen, da sie ohne die IP-Adresse die Inhalte nicht an deren Browser senden könnten. Die IP-Adresse ist damit für die Darstellung dieser Inhalte erforderlich. Wir bemühen uns nur solche Inhalte zu verwenden, deren jeweilige Anbieter die IP-Adresse lediglich zur Auslieferung der Inhalte verwenden. Drittanbieter können ferner so genannte Pixel-Tags (unsichtbare Grafiken, auch als "Web Beacons" bezeichnet) für statistische oder Marketingzwecke verwenden. Durch die "Pixel-Tags" können Informationen, wie der Besucherverkehr auf den Seiten dieser Website ausgewertet werden. Die pseudonymen Informationen können ferner in Cookies auf dem Gerät der Nutzer gespeichert werden und unter anderem technische Informationen zum Browser und Betriebssystem, verweisende Webseiten, Besuchszeit sowie weitere Angaben zur Nutzung unseres Onlineangebotes enthalten, als auch mit solchen Informationen aus anderen Quellen verbunden werden.</span></p><p></p><h3 id="dsg-thirdparty-youtube">Youtube</h3><p></p><p><span class="ts-muster-content">Wir binden die Videos der Plattform “YouTube” des Anbieters Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland, ein. Datenschutzerklärung: <a target="_blank" href="https://www.google.com/policies/privacy/">https://www.google.com/policies/privacy/</a>, Opt-Out: <a target="_blank" href="https://adssettings.google.com/authenticated">https://adssettings.google.com/authenticated</a>.</span></p><a href="https://datenschutz-generator.de" class="dsg1-6" rel="nofollow" target="_blank">Erstellt mit Datenschutz-Generator.de von RA Dr. Thomas Schwenke</a>
+
+
+        </div>
+      </div>
+      {% include sections/footer.html %}
+    </div>
+  </body>
+</html>
