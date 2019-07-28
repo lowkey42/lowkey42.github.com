@@ -2,6 +2,7 @@
 layout: page
 title: About
 header: About
+headTitle: Florian Oetke
 group: navigation
 ---
 <div class="dual_column_container" markdown="1">
