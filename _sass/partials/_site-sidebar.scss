@@ -10,8 +10,8 @@
 
 $sidebar-border-width: $default-border-thickness;
 
-$sidebar-width: 250;
-$sidebar-width-hidden: 200;
+$sidebar-width: 300;
+$sidebar-width-hidden: 300;
 
 $sidebar-font-size: 1.05rem;
 $sidebar-font-size-hidden: 0.85rem;
@@ -54,7 +54,7 @@ $sidebar-font-size-hidden: 0.85rem;
 }
 
 .site-sidebar {
-  @include media(medium) {
+  @media screen and (min-width: 58em) {
     width: $sidebar-width + px;
     font-size: $sidebar-font-size;
     border: none;

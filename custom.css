@@ -167,11 +167,16 @@
 	font-size: 40px;
 	text-rendering: optimizelegibility;
 	font-family: 'Advent Pro', sans-serif;
+    display: inline-block;
+    line-height: 1.0em;
 }
 .page-header > h1 > small {
     font-weight: normal;
     color: #999999;
     font-size: 18px;
+    display: inline-block;
+    line-height: 1em;
+	padding-left: 0.25em;
 }
 
 .site-sidebar {
@@ -195,7 +200,23 @@
     border-bottom-right-radius: 5px;
     
     padding: 5px;
-    max-width: 240px;
+}
+
+@media screen and (min-width: 70em) {
+	.site-main .post-site img {
+		max-width: 20em;
+		float: right;
+	}
+}
+@media screen and (min-width: 45em) and (max-width: 58em) {
+	.site-main .post-site img {
+		max-width: 20em;
+		float: right;
+	}
+}
+
+.site-main .post-site li {
+	clear: both;
 }
 
 .site-header-bg {
@@ -317,6 +338,7 @@ body {
 	min-width: 600px;
 	position: relative;
 	text-rendering: optimizeLegibility;
+	font-variant: slashed-zero;
 }
 
 button {
@@ -401,6 +423,111 @@ button {
 	margin-right: 0;
 }
 
+.column_text {
+	column-count: auto;
+	column-gap: 4em;
+	column-width: 30rem;
+	padding-top: 1em;
+}
+.column_text > :first-child {
+	margin-top: 0;
+}
+
+.captioned_image {
+	padding-top: 1em;
+	padding-bottom: 1em;
+	width: 24em;
+	float: right;
+}
+
+.image_list {
+	display: flex;
+	flex-flow: row wrap;
+	margin: 0;
+	justify-content: space-evenly;
+	align-content: space-between;
+}
+.image_list .captioned_image {
+	margin: 0 auto auto auto;
+}
+
+.captioned_image.right_side {
+	float: right;
+}
+
+.captioned_image {
+	line-height: 150%;
+	text-align: justify;
+	hyphens: auto;
+	-moz-hyphens: auto;
+}
+
+.open_img {
+    height: 20em;
+    width: 20em;
+	margin-left: 2em;
+	margin-right: 2em;
+	
+	position: relative;
+	margin-bottom: 0.5em;
+    display: block;
+    padding: 0;
+}
+.open_img > img {
+    height: auto;
+    width: 100%;
+	display: block;
+    margin: 0 auto;
+    object-position: center;
+}
+.captioned_image.crop > .open_img > img {
+    object-fit: cover;
+    height: 20em;
+}
+.captioned_image.fill > .open_img > img {
+    object-fit: fill;
+    height: 20em;
+}
+.captioned_image.fill_white > .open_img > img {
+    object-fit: contain;
+    background-color: white;
+    height: 20em;
+}
+.captioned_image.fill_black > .open_img > img {
+    object-fit: contain;
+    background-color: black;
+    height: 20em;
+}
+
+.open_img::before {
+    -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    border-radius: 0.5em;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    content: "";
+}
+
+.open_img:hover::before {
+	border: 1px solid #ed615f;
+}
+
+/*
+.site-main .post-site img {
+	width: 100%;
+	
+    -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
+    border: 1px solid transparent;
+}
+
+*/
+
 @media screen and (min-width: 100em) {
 	.dual_column {
 		margin-right: 4em;
@@ -410,7 +537,7 @@ button {
 	}
 }
 
-@media screen and (min-width: 48em) {
+@media screen and (min-width: 50em) {
 	#top-nav-title {
 		width: 30%;
 		display: block;
@@ -425,9 +552,11 @@ button {
 		float: right;
 		margin: 0;
 	}
-		
+}
+
+@media screen and (min-width: 58em) {
 	.post-site {
-		padding-left: 259px !important;
+		padding-left: 312px !important;
 	}
 }
 

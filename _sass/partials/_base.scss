@@ -34,7 +34,7 @@ $site-max-width: 1600;
     @media screen and (min-width: 35.5em) { @content; }
   }
   @else if $size == medium {
-    @media screen and (min-width: 48em) { @content; }
+    @media screen and (min-width: 50em) { @content; }
   }
   @else if $size == large {
     @media screen and (min-width: 64em) { @content; }

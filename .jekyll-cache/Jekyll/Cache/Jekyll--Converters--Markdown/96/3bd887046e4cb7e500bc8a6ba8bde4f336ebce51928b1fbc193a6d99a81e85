@@ -1,0 +1,19 @@
+I"�
+<h1 id="first-question-how-to-represent-worlds-and-other-informations-required-during-generation">first question: how to represent worlds and other informations required during generation</h1>
+
+<h1 id="goal-should-restrict-possible-worlds-as-little-as-possible">goal: should restrict possible worlds as little as possible.</h1>
+
+<h1 id="structured-grids-like-pixel-images-often-cause-artifacts-in-procedural-generation-large-worlds--minimum-resolution-in-important-places--unstructured-grid-aka-meshes-to-simplify-triangle-meshes">structured grids (like pixel images) often cause artifacts in procedural generation; large worlds &amp; minimum resolution in important places =&gt; unstructured grid aka meshes, to simplify triangle meshes</h1>
+
+<h1 id="many-alorithms-use-voronoi-cells-and-their-neighborhoods-same-as-delauny-triangulation-of-vertices-and-their-dual-graph">many alorithms use Voronoi cells and their neighborhoods; same as Delauny Triangulation of vertices and their dual graph</h1>
+<p><a href="/assets/images/delauny_voronoi.png"><img src="/assets/images/delauny_voronoi.png" alt="delauny/voronoi example" /></a></p>
+
+<h1 id="interestingelegant-datastructure-and-the-one-im-using-quad-edge-structure-invented-by-guibas-and-stolfi--stores-the-mesh-and-its-dual-and-allows-eleborat-constant-time-traversal">interesting/elegant datastructure, and the one I’m using, Quad-Edge structure invented by Guibas and Stolfi =&gt; stores the mesh and its dual and allows eleborat constant-time traversal</h1>
+<h1 id="original-limitations-2-manifolds">Original limitations: 2-Manifolds</h1>
+<h1 id="my-limitations-to-simplify-usage">My limitations (to simplify usage):</h1>
+<h1 id="--require-consistent-winding-order--no-non-orientable-surfaces-means-we-dont-have-to-keep-track-about-on-which-side-of-the-surface-we-are-simplifies-lots-of-algorithms-and-later-the-rendering">- require consistent winding-order =&gt; no non-orientable surfaces; means we don’t have to keep track about on which side of the surface we are; simplifies lots of algorithms and (later) the rendering</h1>
+<h1 id="--max-2-faces-may-share-a-vertex-if-they-are-not-connected-through-edges-originating-from-that-vertex-required-for-the-implementation-to-differntiate-the-order-of-edges-around-an-origin">- max. 2 faces may share a vertex, if they are not connected through edges originating from that vertex; required for the implementation, to differntiate the order of edges around an origin</h1>
+<h1 id="eg-image-of-forbidden-case-with-explanation">e.g. Image of forbidden case with explanation</h1>
+<p><a href="/assets/images/mesh_forbidden_case.png"><img src="/assets/images/mesh_forbidden_case.png" alt="Example of forbidden constellation: vertex shared by three unconnected faces" /></a></p>
+
+:ET

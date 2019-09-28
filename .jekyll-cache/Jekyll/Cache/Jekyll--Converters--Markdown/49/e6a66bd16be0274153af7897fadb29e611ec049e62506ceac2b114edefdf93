@@ -1,0 +1,144 @@
+I"�-<h1 id="first-question-how-to-represent-worlds-and-other-informations-required-during-generation">first question: how to represent worlds and other informations required during generation</h1>
+
+<h1 id="goal-should-restrict-possible-worlds-as-little-as-possible">goal: should restrict possible worlds as little as possible.</h1>
+
+<h1 id="structured-grids-like-pixel-images-often-cause-artifacts-in-procedural-generation-large-worlds--minimum-resolution-in-important-places--unstructured-grid-aka-meshes-to-simplify-triangle-meshes">structured grids (like pixel images) often cause artifacts in procedural generation; large worlds &amp; minimum resolution in important places =&gt; unstructured grid aka meshes, to simplify triangle meshes</h1>
+
+<h1 id="many-alorithms-use-voronoi-cells-and-their-neighborhoods-same-as-delauny-triangulation-of-vertices-and-their-dual-graph">many alorithms use Voronoi cells and their neighborhoods; same as Delauny Triangulation of vertices and their dual graph</h1>
+<p><a href="/assets/images/delauny_voronoi.png"><img src="/assets/images/delauny_voronoi.png" alt="delauny/voronoi example" /></a></p>
+
+<h1 id="interestingelegant-datastructure-and-the-one-im-using-quad-edge-structure-invented-by-guibas-and-stolfi--stores-the-mesh-and-its-dual-and-allows-eleborat-constant-time-traversal">interesting/elegant datastructure, and the one I’m using, Quad-Edge structure invented by Guibas and Stolfi =&gt; stores the mesh and its dual and allows eleborat constant-time traversal</h1>
+<h1 id="original-limitations-2-manifolds">Original limitations: 2-Manifolds</h1>
+<h1 id="my-limitations-to-simplify-usage">My limitations (to simplify usage):</h1>
+<h1 id="--require-consistent-winding-order--no-non-orientable-surfaces-means-we-dont-have-to-keep-track-about-on-which-side-of-the-surface-we-are-simplifies-lots-of-algorithms-and-later-the-rendering">- require consistent winding-order =&gt; no non-orientable surfaces; means we don’t have to keep track about on which side of the surface we are; simplifies lots of algorithms and (later) the rendering</h1>
+<h1 id="--max-2-faces-may-share-a-vertex-if-they-are-not-connected-through-edges-originating-from-that-vertex-required-for-the-implementation-to-differntiate-the-order-of-edges-around-an-origin">- max. 2 faces may share a vertex, if they are not connected through edges originating from that vertex; required for the implementation, to differntiate the order of edges around an origin</h1>
+<h1 id="eg-image-of-forbidden-case-with-explanation">e.g. Image of forbidden case with explanation</h1>
+<p><a href="/assets/images/mesh_forbidden_case.png"><img src="/assets/images/mesh_forbidden_case.png" alt="Example of forbidden constellation: vertex shared by three unconnected faces" /></a></p>
+
+<!--more-->
+
+<h1 id="basic-idea-core--edges-between-vertices-and-faces-verticesfaces-consist-only-of-an-id-and-a-reference-to-an-outgoingcircling-edge">basic idea: core = edges between vertices and faces, vertices/faces consist only of an id and a reference to an outgoing/circling edge</h1>
+<h1 id="edges-are-directed-origin-and-destination-vertexface">edges are directed (origin and destination vertex/face)</h1>
+<h1 id="edges-come-in-a-package-of-for-edges-each-that-form-a-quad-edge-their-opposite-origin-and-destination-swapped-rotated-90-left-and-roated-90-right">edges come in a “package” of for edges each, that form a quad-edge; their opposite (origin and destination swapped), rotated 90° left and roated 90° right</h1>
+<h1 id="each-edge-knows-its-origin-the-other-edges-in-its-quad-edge-and-the-next-edge-around-its-origin-in-counter-clockwise-order">each edge knows: its origin, the other edges in its quad-edge and the next edge around its origin in counter-clockwise order</h1>
+
+<h1 id="navigation-is-based-on-the-symrotinv_rot-and-the-next-edge-of-an-edge">navigation is based on the sym/rot/inv_rot and the next-edge of an edge</h1>
+<h1 id="image">Image</h1>
+<h1 id="two-types-of-functions-next--counter-clockwise-and-prev--clock-wise">two types of functions: next = counter-clockwise and prev = clock-wise</h1>
+<h1 id="--origin-rotation-around-the-origin-of-the-edge">- origin: rotation around the origin of the edge</h1>
+<h1 id="--destination-rotation-around-the-destination">- destination: rotation around the destination</h1>
+<h1 id="--left-rotation-around-the-face-on-the-left-side">- left: rotation around the face on the left side</h1>
+<h1 id="--right-rotation-around-the-right-side">- right: rotation around the right side</h1>
+
+<h1 id="-accessors-to-get-orgindest-vertexface-and-the-leftright-face">+ accessors to get orgin/dest vertex/face and the left/right face</h1>
+
+<h2 id="implementation">Implementation</h2>
+<h1 id="can-be-implemented-relativly-compact-and-efficient-first-we-split-edges-into-primal-between-vertices-and-dual-between-faces-and-store-their-origin-and-next-edge-in-separat-dynamic-arrays-we-also-need-an-array-with-one-edge-per-vertex-and-an-array-with-one-edge-per-face">Can be implemented relativly compact and efficient. First we split edges into primal (between vertices) and dual (between faces) and store their origin and next-edge in separat dynamic arrays. We also need an array with one edge per vertex and an array with one edge per face</h1>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">typedef</span> <span class="k">struct</span> <span class="nc">YGDL_Mesh</span> <span class="p">{</span>
+	<span class="kt">uint32_t</span> <span class="n">vertex_count</span><span class="p">;</span>
+	<span class="kt">uint32_t</span> <span class="n">face_count</span><span class="p">;</span>
+	<span class="kt">uint32_t</span> <span class="n">edge_count</span><span class="p">;</span>
+	
+	<span class="k">const</span> <span class="n">YGDL_Edge</span><span class="o">*</span> <span class="n">vertex_edge</span><span class="p">;</span>
+	<span class="k">const</span> <span class="n">YGDL_Edge</span><span class="o">*</span> <span class="n">face_edge</span><span class="p">;</span>
+	
+	<span class="k">const</span> <span class="n">YGDL_Vertex</span><span class="o">*</span> <span class="n">primal_edge_origin</span><span class="p">;</span>
+	<span class="k">const</span> <span class="n">YGDL_Edge</span><span class="o">*</span>   <span class="n">primal_edge_next</span><span class="p">;</span>
+	
+	<span class="k">const</span> <span class="n">YGDL_Face</span><span class="o">*</span>   <span class="n">dual_edge_origin</span><span class="p">;</span>
+	<span class="k">const</span> <span class="n">YGDL_Edge</span><span class="o">*</span>   <span class="n">dual_edge_next</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">YGDL_Mesh</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">YGDL_Vertex</code> and <code class="language-plaintext highlighter-rouge">YGDL_Face</code> are just a struct around an integer id (type-safety). The <code class="language-plaintext highlighter-rouge">YGDL_Edge</code> also contains just an integer but its value is a bit more complex since each edge needs to known which other edges are part of its quad-edge. Because the edges are stored continously and we always create two primal and two dual edges, finding the opposite (sym) of an edge is as simple as flipping its least-significant bit. But we also need to store if the edge is part of the primal or the dual array. For that we steal the most-significant bit (1=dual).</p>
+
+<p>So we don’t have to store any addition indices to implement the three basic traversal functions sym/rot/inv_rot but just need some simple bit operations.</p>
+
+<h2 id="construction">Construction</h2>
+<p>Directly adding faces is not part of the original paper, nor any implementations I could find but I really wanted to allow this for ease of use. The problem is, that this is not as trivial as it may seem at first because triangles might be added in (nearly) any order and we need to update the connectivity informations correctly for all possible cases.</p>
+
+<p>In light of all requirements and limitations, there are a total of 21 cases. Most of which (13) are caused by the shared-vertex-problem and can be ignored for now. The rest consist of two simple cases (zero/three new edges) and the to more complex cases for one/two new edges with 3 cases each.</p>
+
+<p>TODO: image</p>
+
+<ul>
+  <li>
+    <p><b>No new edges:</b> Not an obvious case, but happens if a hole in a mesh is filled in.
+What we do: (almost) nothing. All edges are already there and should be connected correctly. So we just need to update the origin face of the outgoing dual edges and are done.</p>
+  </li>
+  <li>
+    <p><b>One new edge:</b> TODO</p>
+  </li>
+  <li>
+    <p><b>Two new edgee:</b> TODO</p>
+  </li>
+  <li>
+    <p><b>Three new edges:</b> The other simple case. We just added a triangle that is not connected to anything else.
+What we do: Create the three quad-edges, connect each of the primal edges around the three vertices and connect the dual edges into two loops</p>
+  </li>
+</ul>
+
+<h2 id="modification">Modification</h2>
+<h1 id="rotatesplitcollapse">rotate/split/collapse</h1>
+
+<h2 id="data-layers">Data-Layers</h2>
+<h1 id="mesh-contains-just-the-topological-infomations-and-no-actual-data-like-positions--those-are-all-stored-in-data-layers-linked-to-different-parts-of-the-mesh">Mesh contains just the topological infomations and no actual data like positions =&gt; those are all stored in data-layers linked to different parts of the mesh</h1>
+<ul>
+  <li>vertices</li>
+  <li>faces</li>
+  <li>dual/primal edges (directed/un-directed)</li>
+  <li>unstructured (just a unique String-ID)</li>
+</ul>
+
+<h1 id="todo-mesh">TODO: Mesh</h1>
+<ul>
+  <li>Datastructure: direct-edge structure of unstructured triangle mesh =&gt; + dual-mesh with data on each vertex
+    <ul>
+      <li>allows for different scales if required without wasting space</li>
+      <li>fast access to neighbors</li>
+    </ul>
+  </li>
+  <li>TODO: traversal/modification algorithms</li>
+  <li>TODO: generation =&gt; Domains</li>
+</ul>
+
+<h1 id="domains">Domains</h1>
+<ul>
+  <li>generator should be able to handle multiple types of maps (flat, looping, spheres)</li>
+  <li>Algorithms mostly work on abstract areas and their neighbors =&gt; can be generalized into a graph</li>
+  <li>allows for many interesting map shapes: all maps that can be flattened into a 2D coordinate space =&gt; the surface of any 3D shape + portals and other unusual layouts</li>
+</ul>
+
+<p>Spherical-Coordinates are sub-optimal for generation/movement/… =&gt; use 3D-Coordinates and let the Domain normalize those:</p>
+<ul>
+  <li>move(Point[], Direction[])</li>
+  <li>normalize(Point[])</li>
+</ul>
+
+<p>Requires storing the actual distance (Great Cricle on Sphere) for each edge (16bit floats?).</p>
+
+<h1 id="world">World</h1>
+<ul>
+  <li>mesh (vertices + edges)</li>
+  <li>layers (created/updated by modules)
+    <ul>
+      <li>static Description (String-ID, Type?, Value-Range?, …)</li>
+      <li>Per-Vertex Data (e.g. heightmap, water-volume, temperatures) =&gt; variant&lt;int[], float[], vec2[], vec3[], …&gt;</li>
+      <li>Per-Edge Data (e.g. water-flow, distance) =&gt; wie vertex data</li>
+      <li>Unstructured Data (e.g. Settlements, POIs, People?)
+        <ul>
+          <li>unique String-ID</li>
+          <li>vertex-ID als Referenzpunkt (optional)</li>
+          <li>position/offset (optional)</li>
+          <li>radius (optional)</li>
+          <li>JSON-like structured data (any-wrapper um beliebiges struct oder tatsächlich JSON?)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>Future: Applied to generation and simulation of tectonic plates</p>
+
+:ET
