@@ -431,9 +431,9 @@ button {
 	}
 }
 
-@media screen and (min-width: 2100px) {
+@media screen and (min-width: 2610px) {
 	.layout_portfolio {
-		max-width: 2100px;
+		max-width: 2610px;
 	}
 }
 
