@@ -1,4 +1,2 @@
 User-agent: *
 Sitemap: https://second-system.de/sitemap.xml
-Noindex: /impressum.html
-Noindex: /impressum
