@@ -5,6 +5,40 @@
     {% for sheet in page.css %}
       <link rel='stylesheet' href='{{ site.baseurl }}/assets/css/{{ sheet }}.css'>
     {% endfor %}
+    
+    <script language="javascript" type="text/javascript">
+    	function hide_image_overlay() {
+    		var overlay = document.getElementById('image_overlay');
+    		overlay.style.visibility = 'hidden';
+    		overlay.style.opacity = '0';
+    	}
+    	function show_image_overlay(event, e) {
+    		var overlay = document.getElementById('image_overlay');
+    		var imgs = overlay.getElementsByTagName('img');
+    		imgs[0].src = '';
+    		imgs[0].src = e.getElementsByTagName('img')[0].src;
+    		overlay.style.visibility = 'visible';
+    		overlay.style.opacity = '1';
+    		event.preventDefault();
+    	}
+    	function showFootnote(e) {
+    		document.getElementById('footnote_tooltip_text').textContent = e.title;
+    		
+    		var tooltip = document.getElementById('footnote_tooltip');
+    		tooltip.style.visibility = 'visible';
+    		tooltip.style.opacity = '1';
+    	}
+    	function hideFootnote() {
+    		var tooltip = document.getElementById('footnote_tooltip');
+    		tooltip.style.visibility = 'hidden';
+    		tooltip.style.opacity = '0';
+    	}
+    </script>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/darcula.css">
+	<script src="{{ site.baseurl }}/assets/js/highlight.pack.js"></script>
+	<script language="javascript" type="text/javascript">
+		hljs.highlightAll();
+	</script>
   </head>
   <body>
 	{% include JB/setup %}
@@ -28,6 +62,14 @@
         {% endif %}
       </div>
       {% include sections/footer.html %}
+    </div>
+    
+    <div id="image_overlay" class="zoomed_image" onclick="hide_image_overlay(this)">
+    	<img>
+    	<a href="#">[X]</a>
+    </div>
+    <div id="footnote_tooltip" onclick="hideFootnote()">
+    	<span id="footnote_tooltip_text"></span>
     </div>
   </body>
 </html>

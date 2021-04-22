@@ -28,3 +28,18 @@
 <meta name="theme-color" content="#ffffff">
 {% seo title=false %}
 
+<!-- TODO: remove once chrome support for hyphenation is stable enough -->
+<script>
+var Hyphenopoly = {
+    require: {
+        "en-us": "FORCEHYPHENOPOLY"
+    },
+    setup: {
+        selectors: {
+            ".post-site": {}
+        }
+    }
+};
+</script>
+<script src="{{ site.baseurl }}/assets/js/Hyphenopoly_Loader.js"></script>
+

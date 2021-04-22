@@ -18,7 +18,7 @@ $default-gap-thin: 2;
 $default-gap-medium: 4;
 $default-gap-thick: 8;
 
-$site-max-width: 1600;
+$site-max-width: 1800;
 
 @function headings($from: 1, $to: 6) {
   @if $from == $to {

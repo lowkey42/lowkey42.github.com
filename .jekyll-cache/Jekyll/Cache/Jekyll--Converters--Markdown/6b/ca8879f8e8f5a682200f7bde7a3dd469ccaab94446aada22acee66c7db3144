@@ -1,0 +1,5 @@
+I"�<p>Before we can get started with the actual generation/<wbr />simulation algorithms we first need to decide how to store our data, i.e. how the world is represented in the data-model. Given that it’s not clear what algorithms we will use later and what their requirements will be, we’ll want to choose an extensible model, that won’t restrict our options later.</p>
+
+<p>There is however one decision we need to make right now, and that is what kind of shapes we want to support. As said in the previous post I want to focus on spherical worlds, seeing as the real world is (nearly) spherical<sup class="footnote" onclick="showFootnote(this)" title="[citation needed]">[1]</sup> and I want to be able to directly compare it with my results. Since we are – at least at the current scale – only interested in the information on the surface of our world, this means that we need an efficient way to store information for points on the surface of a sphere.</p>
+
+:ET

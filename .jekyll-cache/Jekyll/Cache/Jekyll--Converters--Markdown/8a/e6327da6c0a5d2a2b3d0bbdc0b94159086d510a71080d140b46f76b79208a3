@@ -1,0 +1,2 @@
+I"u<p>Before we can get started with the actual generation/<wbr />simulation algorithms we first need to decide how to store our data, i.e. how the world is represented in the data-model. Given that it’s not clear what algorithms we will use later and what their requirements will be, we’ll want to choose an extensible model, that won’t restrict our options later.</p>
+:ET
