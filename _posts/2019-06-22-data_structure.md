@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "World data structure"
-tagline: "Graph-Traversal, Triangulation and other fun things to do in non-euclidean space"
+tagline: "Graph-traversal, triangulation and other fun things to do in non-euclidean space"
 tags: [yggdrasill]
 excerpt_separateor: <!--more-->
 ---
@@ -12,7 +12,7 @@ There is however one decision we need to make right now, and that is what kind o
 
 <!--more-->
 
-{% include image.html url="/assets/images/Triangles_(spherical_geometry).jpg" classes="fill_black float_right" description="On a Sphere, triangles can have more than one right angle <sup><a href='https://commons.wikimedia.org/wiki/File:Triangles_(spherical_geometry).jpg'>[source]</a></sup>" %}
+{% include image.html url="/assets/images/02/Triangles_(spherical_geometry).jpg" classes="fill_black float_right" description="On a Sphere, triangles can have more than one right angle <sup><a href='https://commons.wikimedia.org/wiki/File:Triangles_(spherical_geometry).jpg'>[source]</a></sup>" %}
 
 Working on the surface of a sphere brings with it a number of interesting problems{% note which is the reason most sane projects try to avoid it by using a flat surface for their worlds %}, because it's not the kind of euclidean space we are used to from school but an elliptic space. This doesn't really affect us at human scales but at the scale of continents we will need to take that into account when moving points on the surface and calculating distances and angles.
 Another problem with using a sphere for our world is that it limits our possible data structures, because a sphere can't be projected onto a flat surface without introducing distortions or other artifacts. Because of that simply projecting a bitmap texture onto the sphere is not really a practical solution.
@@ -35,17 +35,17 @@ The three main concepts are the same as for any mesh: vertices, faces and edges.
 
 In addition to this _primal mesh_, we also want to work with its _dual_. Here vertices and faces switch places, that is each face in the primal mesh is a vertex in the dual mesh, which are connected into voronoi cells with one of the primal vertices inside. As we can see in the image on the right, for each edge in the primal mesh (grey) the dual mesh contains an edge that connects the face on the left and on the right side of it. But the edges and vertices at the boundary are a bit of an _edge case_ and form voronoi cells that are infinitely large. Luckily that is a case we can ignore for now, because our sphere is a closed mesh without any holes or boundaries.
 
-{% include image.html url="/assets/images/delauny_voronoi.png" classes="fill_black" description="A delaunay triangulation (grey) of the vertices (red) and its dual, consisting of the circumcenters of the faces (blue) and connecting edges (cyan), forming the voronoi cells." %}
+{% include image.html url="/assets/images/02/delauny_voronoi.png" classes="fill_black" description="A delaunay triangulation (grey) of the vertices (red) and its dual, consisting of the circumcenters of the faces (blue) and connecting edges (cyan), forming the voronoi cells." %}
 
-Of these three concepts the most important one for our quad-edge data structure is (as the name suggest) the edge. But the edges we are using here are _directed_, which means they know which vertex they are coming from, which one they are going to and which faces are on their left/right side. And we have not just one edge for each connected vertex but four, that form a quad-edge. Beside these pieces of information, we only need one other datum to describe the complete topology: The outgoing edges from each vertex and face. And we store these as linked-lists of edges, where each edge knows the next edge around its origin (also called an edge-loop).
+Of these three concepts the most important one for our quad-edge data structure is (as the name suggest) the edge. But the edges we are using here are _directed_, which means they know which vertex they are coming from, which one they are going to and which faces are on their left/right side. And we have not just one edge for each connected vertex but four, that form a quad-edge. Beside these pieces of information, we only need one other datum to describe the complete topology: The outgoing edges from each vertex and face. And we store these as linked-lists of edges, where each edge knows the next edge around its origin (also called an edge-ring).
 
 <div class="image_list" markdown="1">
 
-{% include image.html url="/assets/images/quad_edge/directed_edge.png" classes="fill_black" description="Each edge <code class='highlighter-rouge'>e</code> knows its origin/destination vertex, as well as which face is on its left/right side.<br> Or origin/destination faces and left/right vertices for edges of the dual mesh." %}
+{% include image.html url="/assets/images/02/quad_edge/directed_edge.png" classes="fill_black" description="Each edge <code class='highlighter-rouge'>e</code> knows its origin/destination vertex, as well as which face is on its left/right side.<br> Or origin/destination faces and left/right vertices for edges of the dual mesh." %}
 
-{% include image.html url="/assets/images/quad_edge/quad_edge.png" classes="fill_black" description="Each edge also knows the other edges that are part of the same quad-edge, which we can access by rotating the edge counter clockwise." %}
+{% include image.html url="/assets/images/02/quad_edge/quad_edge.png" classes="fill_black" description="Each edge also knows the other edges that are part of the same quad-edge, which we can access by rotating the edge counter clockwise." %}
 
-{% include image.html url="/assets/images/quad_edge/edge_loop.png" classes="fill_black" description="Finally, each edge knows the next edge, when rotating counterclockwise around its vertex/face of origin." %}
+{% include image.html url="/assets/images/02/quad_edge/edge_ring.png" classes="fill_black" description="Finally, each edge knows the next edge, when rotating counterclockwise around its vertex/face of origin, i.e. its edge-ring." %}
 
 </div>
 
@@ -73,10 +73,10 @@ As we've seen all operations above always rotate counterclockwise. So the final 
 
 <div class="image_list" markdown="1">
 
-{% include image.html url="/assets/images/quad_edge/origin_next.png" classes="fill_black" description="<code class='highlighter-rouge'>origin_next(e)</code> allows us to iterate over all edges around a vertex or face. As with all operations the direction is counterclockwise and <code class='highlighter-rouge'>origin_prev(e)</code> can be used for clockwise iteration." %}
+{% include image.html url="/assets/images/02/quad_edge/origin_next.png" classes="fill_black" description="<code class='highlighter-rouge'>origin_next(e)</code> allows us to iterate over all edges around a vertex or face. As with all operations the direction is counterclockwise and <code class='highlighter-rouge'>origin_prev(e)</code> can be used for clockwise iteration." %}
 
-{% include image.html url="/assets/images/quad_edge/dest_next.png" classes="fill_black" description="Similarly, <code class='highlighter-rouge'>dest_next(e)</code> can be used to iterate over all edges with a given destination." %}
-{% include image.html url="/assets/images/quad_edge/left_right_next.png" classes="fill_black" description="And finally <code class='highlighter-rouge'>left_next(e)</code> and <code class='highlighter-rouge'>right_next(e)</code> can be used to iterate over all edges that are part of a given face." %}
+{% include image.html url="/assets/images/02/quad_edge/dest_next.png" classes="fill_black" description="Similarly, <code class='highlighter-rouge'>dest_next(e)</code> can be used to iterate over all edges with a given destination." %}
+{% include image.html url="/assets/images/02/quad_edge/left_right_next.png" classes="fill_black" description="And finally <code class='highlighter-rouge'>left_next(e)</code> and <code class='highlighter-rouge'>right_next(e)</code> can be used to iterate over all edges that are part of a given face." %}
 
 </div>
 
@@ -245,7 +245,7 @@ struct Edge {
 	Edge base()const    { return { mask & ~(edge_type_bit | 1u)}; }
 ```
 
-{% include image.html url="/assets/images/quad_edge/rot_math.png" classes="fill_black float_right" description="" %}
+{% include image.html url="/assets/images/02/quad_edge/rot_math.png" classes="fill_black float_right" description="" %}
 <p style="height:12em; display: table-cell; vertical-align: middle;">
 To implement the rotate operation, we need to change both the most and least significant bit. The most significant bit alternates between 0 and 1 as we alternate between primal and dual edges. But the least significant bit only changes every two steps. To realize this, its change is dependent on the most significant bit, i.e. we only alternate it if we rotate from a dual to a primal edge.
 </p>
@@ -309,7 +309,7 @@ Next are the function to actually traverse the mesh. `origin_next(e)` is again q
 ```
 
 
-{% include image.html url="/assets/images/quad_edge/origin_prev.png" classes="fill_black float_right" description="" %}
+{% include image.html url="/assets/images/02/quad_edge/origin_prev.png" classes="fill_black float_right" description="" %}
 One example for the methods above, that shows how `origin_prev()` can be implemented in terms of `origin_next()`.
 
 The key here is that we first rotate the edge, to get the dual edge that points from the right to the left face. Just like with primal edges we can use `origin_next()` to get the next (counterclockwise) edge around the origin, but for dual edges that origin is a face instead of a vertex. So when we rotate our dual edge, we get the dual edge that point "through" the next edge of the right face or in other words `origin_prev()` of our original mesh. And to get this primal edge, we then just need to rotate the dual edge again.

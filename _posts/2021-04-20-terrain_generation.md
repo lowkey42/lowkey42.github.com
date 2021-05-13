@@ -46,6 +46,11 @@ velocities[n]    = (np - p) / 100.f;
         - Copy elevation, but disturb it slightly for continental plates
     2. Randomly shuffle the list of vertices that were modified in this iteration and goto step 1, until no vertices have been modified
 
+{% include video.html url="/assets/images/sphere_plates.webm" description="TODO" %}
+
+{% include video.html url="/assets/images/sphere_plate_directions.webm" description="TODO" %}
+
+
 # Simulation
 
 TODO: general idea

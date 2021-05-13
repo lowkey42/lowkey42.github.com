@@ -477,6 +477,9 @@ blockquote {
 .fixed_height.float_right > .open_img > img {
 	height: 12em;
 }
+.fixed_height.float_right > .open_img > video {
+	height: 12em;
+}
 .captioned_image.float_right > .open_img {
 	width: 12em;
 	margin-left: 0em;
@@ -515,6 +518,14 @@ blockquote {
 	display: block;
     margin: 0 auto;
     object-position: center;
+}
+.open_img > video {
+    height: auto;
+    width: 100%;
+	display: block;
+    margin: 0 auto;
+    object-position: center;
+    border-radius: 0.5em;
 }
 
 .fixed_height > .open_img {

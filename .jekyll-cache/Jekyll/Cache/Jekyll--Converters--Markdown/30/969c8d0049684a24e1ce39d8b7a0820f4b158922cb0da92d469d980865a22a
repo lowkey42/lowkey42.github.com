@@ -1,0 +1,14 @@
+I"{<p>TODO: reword intro</p>
+
+<p>In the last post we’ve looked at how we can store our geometry, how we can traverse the resulting mesh and how we’ll later store our actual data. But one aspect we haven’t looked at yet is how we construct such a mesh data structure in the first place, i.e. how we get from a soup of triangle faces to a quad-edge mesh, and how we can modify the topology later.</p>
+
+<p>There are two basic operations defined in the original paper for both modification and construction:</p>
+<ul>
+  <li>MakeEdge: Creates a new edge <code>e</code> and its corresponding quad-edge</li>
+  <li>Splice: Takes two edges <code>a</code> and <code>b</code> and either connects them or splits them apart, if they are already connected.</li>
+</ul>
+
+<p>While these two operations are quite powerfull and can be used to construct any quad-edge mesh and apply any modification we might want, they are not ideal for our use-case. First they are rather more complex to use, than I would like for everyday use, because they require quite a bit of knowledge about topology and use concepts that are not not as easy to visualize as faces in a triangle mesh. And secondly, they allow for strutures that we don’t actually want to support, like non-triangular faces.</p>
+
+<p>So what we will do instead is define our own operations, based on how they will be used later, which gives us the following:</p>
+:ET

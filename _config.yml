@@ -8,6 +8,7 @@ highlighter: rouge
 kramdown:
   input: GFM
   hard_wrap: false
+  math_engine: katex
   syntax_highlighter_opts:
     disable : true
   extensions: fenced_code_blocks
