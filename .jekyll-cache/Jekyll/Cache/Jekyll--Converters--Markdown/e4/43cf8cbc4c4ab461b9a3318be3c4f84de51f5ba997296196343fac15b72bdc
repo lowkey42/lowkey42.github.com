@@ -1,4 +1,4 @@
-I"��<p>In the last post we’ve looked at how we can store our geometry, how we can traverse the resulting mesh and how we’ll later store our actual data. But one aspect we haven’t looked at yet is how we construct such a mesh data structure in the first place, i.e. how we get from a soup of triangle faces to a quad-edge mesh.</p>
+I"e�<p>In the last post we’ve looked at how we can store our geometry, how we can traverse the resulting mesh and how we’ll later store our actual data. But one aspect we haven’t looked at yet is how we construct such a mesh data structure in the first place, i.e. how we get from a soup of triangle faces to a quad-edge mesh.</p>
 
 <p>There are two basic operations defined in the original paper to construct and modify meshes:</p>
 <ul>
@@ -22,7 +22,7 @@
 
 <p>While these operations are much easier to use, their implementation is also quite a bit more complex. So before we get into the implementation details, we’ll first take a look at how they will be used to construct a spherical mesh for our world.</p>
 
-<h2 id="creating-a-sphere">Creating a sphere</h2>
+<h2 id="creating-a-sphere">Creating a Sphere</h2>
 
 <p>As already stated in the first post, I want to generate spherical worlds<sup class="footnote" onclick="showFootnote(this)" title="at least for now">[1]</sup>. The first step of this we be generating and simulating a tectonic plates.
 Of course, plate tectonics in the real world are much more complex than I can hope to simulate. But I’m not aiming for perfect, but just close enough and I’m mostly interested in the high-level features like mountain ranges and not so much in the complex formation, layering and folding of plates.</p>
@@ -218,7 +218,7 @@ auto       ii    = std::min(i + offset, vertices - 1.f);
 
 <p>Thanks to our restrictions we only have to handle 8 different cases in total. One for each of the three quad-edges of the new face, that could either be missing or already exist. Luckily most of these are rotationally symmetrical and we only need to look at 4 distinct cases, that we can identify by counting the number of already existing edges.</p>
 
-<h3 id="case-0-no-preexisting-edges">Case 0: No preexisting edges</h3>
+<h3 id="case-0-no-preexisting-edges">Case 0: No Preexisting Edges</h3>
 
 <p>The simplest case – and also the first one we need when we construct a new mesh – is the situation where we don’t have any faces or edges. All we need to do in this case is create one face and three quad-edges and connect them as shown below<sup class="footnote" onclick="showFootnote(this)" title="Technically it's also possible to create multiple unconnected faces, that are later connected by additional faces. As long as we don't violate the restriction above and all faces are connected before any traversal operation is used, that accesses the boundary edge. Because in that case we would have multiple edge-rings for the same face (the boundary face), which violates the precondition of the traversal operations.">[5]</sup>:</p>
 
@@ -240,7 +240,7 @@ auto       ii    = std::min(i + offset, vertices - 1.f);
 
 </div>
 
-<h3 id="case-1-one-preexisting-edge-two-new-edges">Case 1: One preexisting edge (two new edges)</h3>
+<h3 id="case-1-one-preexisting-edge-two-new-edges">Case 1: One Preexisting Edge (two new Edges)</h3>
 
 <figure class="captioned_image fill_black float_right">
 	<a class="open_img" href="/assets/images/03/mesh_construction/insert_1_blank.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
@@ -292,7 +292,7 @@ auto       ii    = std::min(i + offset, vertices - 1.f);
 
 </div>
 
-<h3 id="case-2-two-preexisting-edges-one-new-edge">Case 2: Two preexisting edges (one new edge)</h3>
+<h3 id="case-2-two-preexisting-edges-one-new-edge">Case 2: Two Preexisting Edges (one new Edge)</h3>
 
 <figure class="captioned_image fill_black float_right">
 	<a class="open_img" href="/assets/images/03/mesh_construction/insert_2_blank.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
@@ -323,11 +323,11 @@ auto       ii    = std::min(i + offset, vertices - 1.f);
 
 </div>
 
-<h3 id="case-3-three-preexisting-edges">Case 3: Three preexisting edges</h3>
+<h3 id="case-3-three-preexisting-edges">Case 3: Three Preexisting Edges</h3>
 
-<p>The opposite of Case 1 is also not too complex: All three vertices of our face are already connected by edges and we currently have a hole where we want to create the face. Because all connections are already established in this case, we don’t have to connect any edge, but just create a new face and set the origin of the dual edges leaving the face accordingly.</p>
+<p>The opposite of Case 1 is also not too complex: All three vertices of our face are already connected by edges and we currently have a hole where we want to create the face. Because all connections are already established in this case, we don’t have to connect any edge, but just create a new face and set the origin of the dual edges leaving the face accordingly<sup class="footnote" onclick="showFootnote(this)" title="and possibly remove them from the boundary edge-ring, if they don't already form a distinct ring ">[7]</sup>.</p>
 
-<h3 id="the-edge-case7">The edge case<sup class="footnote" onclick="showFootnote(this)" title="It's never so simple ">[7]</sup></h3>
+<h3 id="the-edge-case8">The Edge-Case<sup class="footnote" onclick="showFootnote(this)" title="It's never so simple... ">[8]</sup></h3>
 
 <p>We owe the simplicity of the previous cases primarily to one assumption: If a vertex already has a face we also share an edge with this face.</p>
 
@@ -346,7 +346,7 @@ auto       ii    = std::min(i + offset, vertices - 1.f);
   <li>Iterate over each affected vertex and fix the errors introduced by ignoring the edge case 1.</li>
 </ol>
 
-<p>The specific errors that are introduced by 1. are unconnected edge-rings<sup class="footnote" onclick="showFootnote(this)" title="multiple disjunct sets of edges, that each form an independent edge-ring">[8]</sup>, which would cause massive problems during traversal, because we would only see one of them when we iterate with <code>origin_next(e)</code>. Luckily we can solve this problem relatively easily by merging the two edge-rings:</p>
+<p>The specific errors that are introduced by 1. are unconnected edge-rings<sup class="footnote" onclick="showFootnote(this)" title="multiple disjunct sets of edges, that each form an independent edge-ring">[9]</sup>, which would cause massive problems during traversal, because we would only see one of them when we iterate with <code>origin_next(e)</code>. Luckily we can solve this problem relatively easily by merging the two edge-rings:</p>
 
 <pre><code class="language-cpp">void merge_edge_ring(Edge last_edge_of_a, Edge last_edge_of_b) {
 	auto&amp; a_next = primal_edge_next_[last_edge_of_a.index()];

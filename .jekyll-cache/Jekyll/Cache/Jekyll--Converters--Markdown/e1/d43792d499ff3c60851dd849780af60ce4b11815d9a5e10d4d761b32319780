@@ -1,4 +1,4 @@
-I"s�<p>Before we can get started with the actual generation/<wbr />simulation algorithms we first need to decide how to store our data, i.e. how the world is represented in the data-model. Given that it’s not clear what algorithms we will use later and what their requirements will be, we’ll want to choose an extensible model, that won’t restrict our options later.</p>
+I"��<p>Before we can get started with the actual generation/<wbr />simulation algorithms we first need to decide how to store our data, i.e. how the world is represented in the data-model. Given that it’s not clear what algorithms we will use later and what their requirements will be, we’ll want to choose an extensible model, that won’t restrict our options later.</p>
 
 <p>There is however one decision we need to make right now, and that is what kind of shapes we want to support. As said in the previous post I want to focus on spherical worlds, seeing as the real world is (nearly) spherical<sup class="footnote" onclick="showFootnote(this)" title="[citation needed]">[1]</sup> and I want to be able to directly compare it with my results. Since we are – at least at the current scale – only interested in the information on the surface of our world, this means that we need an efficient way to store information for points on the surface of a sphere.</p>
 
@@ -20,7 +20,7 @@ Another problem with using a sphere for our world is that it limits our possible
 
 <p><br style="clear: both" /></p>
 
-<h2 id="mesh-data-structure-quad-qdges">Mesh data structure: quad-qdges</h2>
+<h2 id="mesh-data-structure-quad-edges">Mesh Data Structure: Quad-Edges</h2>
 
 <p>The next question is: How do we store this triangle mesh?</p>
 
@@ -369,7 +369,7 @@ To implement the rotate operation, we need to change both the most and least sig
 
 <p><br style="clear:both" /></p>
 
-<h3 id="higher-level-abstractions">Higher level abstractions</h3>
+<h3 id="higher-level-abstractions">Higher Level Abstractions</h3>
 
 <p>Based on the relatively simple operations, we have seen so far, we can now construct higher level abstractions to navigate the topology. One operation we need relatively often is iterating over every neighbor of a given vertex<sup class="footnote" onclick="showFootnote(this)" title="i.e. all vertices that share an edge with the given vertex">[11]</sup>, which can be implemented as:</p>
 
@@ -405,7 +405,7 @@ do {
 
 <p>But because these operations are a bit more complex and this post is already far longer than I originally planned, we will look at that in a future post.</p>
 
-<h2 id="positions-elevations-and-other-additional-information">Positions, elevations and other additional information</h2>
+<h2 id="positions-elevations-and-other-additional-information">Positions, Elevations and other Additional Information</h2>
 
 <p>However, there is one part we have to still talk about. Everything we have talked about so far is purely concerned with the topology – which vertices/faces are connected to each other – and doesn’t care about how it is actually laid out in space. That is, if it can be laid out without intersecting itself, it doesn’t matter if our basic shape is a sphere, cube, plane or tesseract<sup class="footnote" onclick="showFootnote(this)" title="which is quite neat, I think, and allows us a lot of flexibility in the future.">[12]</sup>.</p>
 
@@ -442,7 +442,7 @@ class Layer {
 
 <p>One thing that might be a bit surprising at first is the number of possible types of edges in <code>Layer_type</code>. In addition to the distinction between primal and dual edges, we also differentiate between directed and undirected edges here. While the edges in our mesh are always directed, much of the information we might want to store about them will be identical for both directions. For example when we model plate tectonics and store the type of interaction between all vertices, we would choose <code>edge_primal</code> instead of <code>edge_primal_directed</code> and only require half the memory to store our data.</p>
 
-<h2 id="world-class">World class</h2>
+<h2 id="world-class">World Class</h2>
 
 <p>As already noted the Layers might need to be updated whenever the mesh is modified, which means both are heavily intertwined. So it isn’t really feasible to construct them independently of each other. Hence we will encapsulate both in a <code>World</code> type that manages both the <code>Mesh</code> and any created <code>Layer</code>:</p>
 
@@ -479,6 +479,8 @@ class Layer {
   <li>Whether its data should be automatically validated against this range, to detect runtime errors</li>
   <li>How the data should react to changes of the mesh (e.g. when an edge is split, should the value for the new vertex be interpolated between the original origin and destination, reset to the initial value, use the min/max of the values, …?)</li>
 </ol>
+
+<p>Layers will usually be shared between multiple independent modules, that contain the actual procedural generation code. In fact, they are the main way of communication between them. Because it would be unpractical to keep all of them synchronized, the system remembers all information about a layer at the time of creation. So all later modules that want to access an existing layer only need to pass the first two points from the list above (which are validated against the stored information) and all others will be ignored.</p>
 
 <p>Because of that we also introduce a new type <code>Layer_info</code> to describe what a layer looks like and how it should behave, which can be constructed and then used to retrieve a concrete layer from the <code>World</code>:</p>
 

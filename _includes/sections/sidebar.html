@@ -16,27 +16,37 @@
 			{% capture next_month %}{{ post.previous.date | date: "%B" }}{% endcapture %}
 		  
 			{% if forloop.first %}
-		   <li class='menu-heading'>{{this_year}} </li>
+		   <li><span class='menu-heading'>{{this_year}}</span><ul class='menu-list'>
+		   <li><span class='menu-heading menu-sub-heading'>{{this_month}}</span><ul class='menu-list'>
 			{% endif %}
   
             <li class='menu-item'>
               {% if post.url != page.url %}
-              <a class='menu-link' href='{{ BASE_PATH }}{{ post.url }}'>
+              <a class='menu-link' href='{{ BASE_PATH }}{{ post.url }}' title='{{ post.tagline }}'>
               {% else %}
-              <a class="menu-link" style="font-weight:bold">
+              <a class="menu-link" style="font-weight:bold; text-decoration: underline;">
               {% endif %}
-                {{ post.date | date: "%B %e" }} &ndash; {{ post.title }}
+                <span class="menu-day">{{ post.date | date: "%d" }}</span> &ndash; {{ post.title }}
               </a>
             </li>
             
 			{% if forloop.last %}
 			{% else %}
 			  {% if this_year != next_year %}
+			    </ul></li></ul></li>
 			  	<li class='menu-spacer'></li>
-		   		<li class='menu-heading'>{{next_year}} </li>
+		        <li><span class='menu-heading'>{{next_year}}</span><ul class='menu-list'>
+		        <li><span class='menu-heading menu-sub-heading'>{{next_month}}</span><ul class='menu-list'>
+			  {% else %}
+			    {% if this_month != next_month %}
+			     </ul></li>
+		         <li><span class='menu-heading menu-sub-heading'>{{next_month}}</span><ul class='menu-list'>
+			    {% endif %}
 			  {% endif %}
 			{% endif %}
 		  {% endfor %}
+		  
+		  </ul></li></ul></li>
 		  
 			  	<li class='menu-spacer'></li>
 		  <li class='menu-separator'></li>

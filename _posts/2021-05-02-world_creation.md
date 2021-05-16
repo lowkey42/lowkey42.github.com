@@ -2,7 +2,7 @@
 layout: post
 title: "World mesh creation"
 tagline: "In the beginning there were triangles. Lots and lots of triangles..."
-tags: [yggdrasill]
+tags: [yggdrasill, low-level]
 excerpt_separator: <!--more-->
 ---
 
@@ -29,7 +29,7 @@ class Mesh {
 
 While these operations are much easier to use, their implementation is also quite a bit more complex. So before we get into the implementation details, we'll first take a look at how they will be used to construct a spherical mesh for our world.
 
-## Creating a sphere
+## Creating a Sphere
 
 As already stated in the first post, I want to generate spherical worlds{% note at least for now%}. The first step of this we be generating and simulating a tectonic plates.
 Of course, plate tectonics in the real world are much more complex than I can hope to simulate. But I'm not aiming for perfect, but just close enough and I'm mostly interested in the high-level features like mountain ranges and not so much in the complex formation, layering and folding of plates.
@@ -158,7 +158,7 @@ Because our mesh implementation doesn't know about the position of vertices, we 
 
 Thanks to our restrictions we only have to handle 8 different cases in total. One for each of the three quad-edges of the new face, that could either be missing or already exist. Luckily most of these are rotationally symmetrical and we only need to look at 4 distinct cases, that we can identify by counting the number of already existing edges.
 
-### Case 0: No preexisting edges
+### Case 0: No Preexisting Edges
 
 The simplest case -- and also the first one we need when we construct a new mesh -- is the situation where we don't have any faces or edges. All we need to do in this case is create one face and three quad-edges and connect them as shown below{% note Technically it's also possible to create multiple unconnected faces, that are later connected by additional faces. As long as we don't violate the restriction above and all faces are connected before any traversal operation is used, that accesses the boundary edge. Because in that case we would have multiple edge-rings for the same face (the boundary face), which violates the precondition of the traversal operations.%}:
 
@@ -170,7 +170,7 @@ The simplest case -- and also the first one we need when we construct a new mesh
 
 </div>
 
-### Case 1: One preexisting edge (two new edges)
+### Case 1: One Preexisting Edge (two new Edges)
 
 {% include image.html url="/assets/images/03/mesh_construction/insert_1_blank.png" classes="fill_black float_right" description="" %}
 
@@ -209,7 +209,7 @@ void insert_before(Edge successor, Edge new_edge) {
 
 </div>
 
-### Case 2: Two preexisting edges (one new edge)
+### Case 2: Two Preexisting Edges (one new Edge)
 
 {% include image.html url="/assets/images/03/mesh_construction/insert_2_blank.png" classes="fill_black float_right" description="" %}
 
@@ -226,13 +226,13 @@ This case is quite similar to the previous one, but slightly simpler because we 
 </div>
 
 
-### Case 3: Three preexisting edges
+### Case 3: Three Preexisting Edges
 
-The opposite of Case 1 is also not too complex: All three vertices of our face are already connected by edges and we currently have a hole where we want to create the face. Because all connections are already established in this case, we don't have to connect any edge, but just create a new face and set the origin of the dual edges leaving the face accordingly.
+The opposite of Case 1 is also not too complex: All three vertices of our face are already connected by edges and we currently have a hole where we want to create the face. Because all connections are already established in this case, we don't have to connect any edge, but just create a new face and set the origin of the dual edges leaving the face accordingly{% note and possibly remove them from the boundary edge-ring, if they don't already form a distinct ring %}.
 
 
 
-### The edge case{% note It's never so simple %}
+### The Edge-Case{% note It's never so simple... %}
 
 We owe the simplicity of the previous cases primarily to one assumption: If a vertex already has a face we also share an edge with this face.
 

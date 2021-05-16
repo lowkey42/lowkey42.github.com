@@ -194,6 +194,7 @@
 }
 
 .site-sidebar {
+	overflow: hidden;
 	border: none !important;
 	position: absolute !important;
 	
@@ -326,6 +327,37 @@ p {
 	margin-left: 10px;
 	margin-right: 10px;
 }
+
+table.bordered {
+	border: none;
+	border-collapse: collapse;
+	margin-left: auto;
+	margin-right: auto;
+	font-variant-numeric: tabular-nums;
+	font-size: 75%;
+}
+table.bordered th {
+	border-bottom: 2px solid #aaa;
+}
+table.bordered td, table.bordered th {
+	border-left: 2px solid #aaa;
+	padding: 0 1em;
+}
+table.bordered td:first-child, table.bordered th:first-child  {
+	border-left: none;
+}
+table.bordered thead {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+table.bordered tr:nth-child(even){
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+table code {
+	background: none !important;
+	box-shadow: none;
+}
+
 .site-container > * {
 	margin-left: 10px;
 	margin-right: 10px;
@@ -640,8 +672,19 @@ pre code {
 code {
 	background: #1b1b1b !important;
 	padding: 0.1em 0.3em;
-    border-radius: 0.5em;
-    box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.3) 0 1px 7px 0px inset;
+	border-radius: 0.5em;
+	box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.3) 0 1px 7px 0px inset;
+	hyphens: none;
+}
+
+.vertical-menu .menu-list .menu-heading.menu-sub-heading {
+	font-size: 1.0rem;
+}
+.vertical-menu .menu-list .menu-item {
+	font-size: 0.9rem;
+}
+.menu-day {
+	font-variant-numeric: tabular-nums;
 }
 
 @media screen and (min-width: 100em) {

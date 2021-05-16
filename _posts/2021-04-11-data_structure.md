@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "World data structure"
+title: "World Data Structure"
 tagline: "Graph-traversal, triangulation and other fun things to do in non-euclidean space"
-tags: [yggdrasill]
+tags: [yggdrasill, low-level]
 excerpt_separateor: <!--more-->
 ---
 
@@ -23,7 +23,7 @@ So the data structure of choice will be a triangle mesh, to represent a Delauny 
 
 <br style="clear: both">
 
-## Mesh data structure: quad-qdges
+## Mesh Data Structure: Quad-Edges
 
 The next question is: How do we store this triangle mesh?
 
@@ -316,7 +316,7 @@ The key here is that we first rotate the edge, to get the dual edge that points 
 
 <br style="clear:both">
 
-### Higher level abstractions
+### Higher Level Abstractions
 
 Based on the relatively simple operations, we have seen so far, we can now construct higher level abstractions to navigate the topology. One operation we need relatively often is iterating over every neighbor of a given vertex{% note i.e. all vertices that share an edge with the given vertex%}, which can be implemented as: 
 
@@ -353,7 +353,7 @@ One part of the API we've ignored so far is how we construct a mesh to begin wit
 But because these operations are a bit more complex and this post is already far longer than I originally planned, we will look at that in a future post.
 
 
-## Positions, elevations and other additional information
+## Positions, Elevations and other Additional Information
 
 However, there is one part we have to still talk about. Everything we have talked about so far is purely concerned with the topology -- which vertices/faces are connected to each other -- and doesn't care about how it is actually laid out in space. That is, if it can be laid out without intersecting itself, it doesn't matter if our basic shape is a sphere, cube, plane or tesseract{% note which is quite neat, I think, and allows us a lot of flexibility in the future.%}.
 
@@ -391,7 +391,7 @@ Because `Layer` is a class template it can be used to store all kinds of differe
 
 One thing that might be a bit surprising at first is the number of possible types of edges in `Layer_type`. In addition to the distinction between primal and dual edges, we also differentiate between directed and undirected edges here. While the edges in our mesh are always directed, much of the information we might want to store about them will be identical for both directions. For example when we model plate tectonics and store the type of interaction between all vertices, we would choose `edge_primal` instead of `edge_primal_directed` and only require half the memory to store our data.
 
-## World class
+## World Class
 
 As already noted the Layers might need to be updated whenever the mesh is modified, which means both are heavily intertwined. So it isn't really feasible to construct them independently of each other. Hence we will encapsulate both in a `World` type that manages both the `Mesh` and any created `Layer`:
 
@@ -427,6 +427,8 @@ Besides the `mesh()` getter the class also contains to getters for layers, one f
 1. The range of valid values (only positive numbers, only numbers between 0 and 10, ...)
 1. Whether its data should be automatically validated against this range, to detect runtime errors
 1. How the data should react to changes of the mesh (e.g. when an edge is split, should the value for the new vertex be interpolated between the original origin and destination, reset to the initial value, use the min/max of the values, ...?)
+
+Layers will usually be shared between multiple independent modules, that contain the actual procedural generation code. In fact, they are the main way of communication between them. Because it would be unpractical to keep all of them synchronized, the system remembers all information about a layer at the time of creation. So all later modules that want to access an existing layer only need to pass the first two points from the list above (which are validated against the stored information) and all others will be ignored.
 
 Because of that we also introduce a new type `Layer_info` to describe what a layer looks like and how it should behave, which can be constructed and then used to retrieve a concrete layer from the `World`:
 
