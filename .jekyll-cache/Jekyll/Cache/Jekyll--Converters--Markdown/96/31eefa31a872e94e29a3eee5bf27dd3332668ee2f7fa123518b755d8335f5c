@@ -1,0 +1,13 @@
+I"È<p>TODO: intro/requirements/goals</p>
+
+<p>Basis:</p>
+<figure class="captioned_image fill_white">
+	<a class="open_img" href="/assets/images/Procedural Tectonic Planets.gif" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/Procedural Tectonic Planets.gif" alt="" />
+	</a>
+  <figcaption><a href="https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf">Procedural Tectonic Planets by Cortial et al.</a> is a paper from 2019 that TODO TODO TODO</figcaption>
+</figure>
+
+<p>TODO: this post: differences to paper, used model and construction of initial state; next post = simulation</p>
+
+:ET

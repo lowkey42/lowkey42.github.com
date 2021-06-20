@@ -1,0 +1,17 @@
+I"<p>This will (hopefully) be the last post about geometry and the Mesh-API, before we can start with the actual generation algorithms.</p>
+
+<p>We’ve already defined a basic data structure for our geometry, implemented algorithms to traverse it and, in the last post, constructed a spherical delaunay triangulation of random points, distributed evenly on a sphere.</p>
+
+<p>So the only part of the API that is still missing are functions to modify existing meshes. The three fundamental operations we’ll define for this are the following, that we will specify now:</p>
+
+<pre><code class="language-cpp">class Mesh {
+  public:
+	// ...
+	
+	void   flip    (Edge e);
+	Edge   split   (Edge e, float split_point);
+	Vertex collapse(Edge e, float join_point);
+};
+</code></pre>
+
+:ET

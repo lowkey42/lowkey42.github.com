@@ -17,7 +17,7 @@ There is however one decision we need to make right now, and that is what kind o
 Working on the surface of a sphere brings with it a number of interesting problems{% note which is the reason most sane projects try to avoid it by using a flat surface for their worlds %}, because it's not the kind of euclidean space we are used to from school but an elliptic space. This doesn't really affect us at human scales but at the scale of continents we will need to take that into account when moving points on the surface and calculating distances and angles.
 Another problem with using a sphere for our world is that it limits our possible data structures, because a sphere can't be projected onto a flat surface without introducing distortions or other artifacts. Because of that simply projecting a bitmap texture onto the sphere is not really a practical solution.
 
-But based on the other projects I've looked at and my requirements, a triangle mesh is the obvious choice, anyway. Structured Grids like bitmaps/2D-Arrays often suffer from artifacts, either from discretization problems or other limitations, that are less obvious on unstructured grids. A triangle mesh is also a promising data structure, because it extremely flexible as far as the resolution is concerned which will be required to support the relatively large detailed worlds I'm looking for.
+But based on the other projects I've looked at and my requirements, a triangle mesh is the obvious choice, anyway. Structured Grids like bitmaps/2D-Arrays often suffer from artifacts, either from discretization problems or other limitations, that are less obvious on unstructured grids. A triangle mesh is also a promising data structure, because it's extremely flexible as far as the resolution is concerned, which will be required to support the relatively large detailed worlds I'm looking for.
 
 So the data structure of choice will be a triangle mesh, to represent a Delauny triangulation (as well as their dual-graph the voronoi diagram) with a variable resolution based on local detail requirements.
 
@@ -31,13 +31,19 @@ The simple option would be an array of faces, each containing the connected vert
 
 But the data structure I've decided on are [quad-edges](http://www.cs.cmu.edu/afs/andrew/scs/cs/15-463/2001/pub/src/a2/quadedge.html), first described by Jorge Stolfi and Leonidas J. Guibas in 1985. Their main benefit is, that they model the primal triangle mesh, as well as its dual (voronoi diagram) at the same time. This means that we can traverse both and naturally switch between them if our algorithm requires it. Furthermore, quad-edges can answer many questions about the topology in constant time and often with just a simple bit-operation or by dereferencing a single pointer. And in spite of all that their memory layout can be quite compact, which will be important for larger worlds.
 
-The three main concepts are the same as for any mesh: vertices, faces and edges. Vertices are points on the surface and the structure where we will store most of our information like elevation. Two vertices can be connected by an edge and three connected vertices form a single triangular face.
+The three main concepts are the same as for any mesh: vertices, faces and edges. Vertices are points on the surface and the element to which we will link most of our information like elevation. Two vertices can be connected by an edge and three connected vertices form a single triangular face.
 
-In addition to this _primal mesh_, we also want to work with its _dual_. Here vertices and faces switch places, that is each face in the primal mesh is a vertex in the dual mesh, which are connected into voronoi cells with one of the primal vertices inside. As we can see in the image on the right, for each edge in the primal mesh (grey) the dual mesh contains an edge that connects the face on the left and on the right side of it. But the edges and vertices at the boundary are a bit of an _edge case_ and form voronoi cells that are infinitely large. Luckily that is a case we can ignore for now, because our sphere is a closed mesh without any holes or boundaries.
+In addition to this _primal mesh_, we also want to work with its _dual_. Here vertices and faces switch places, that is each face in the primal mesh is a vertex in the dual mesh{% note The dual vertex is positioned at the circumcenter of the face. That means, depending on the shape of the triangle, the dual vertex could also lie outside of the face. %}, which are connected into voronoi cells with one of the primal vertices inside. As we can see in the image on the right, for each edge in the primal mesh (grey) the dual mesh contains an edge that connects the face on the left and on the right side of it. But the edges and vertices at the boundary are a bit of an _edge case_ and form voronoi cells that are infinitely large. Luckily that is a case we can ignore for now, because our sphere is a closed mesh without any holes or boundaries.
+
+The dual mesh is especially interesting for us, because the voronoi cells define the area around each primal-vertex that is closer to it than any other vertex. Which is useful if we use the primal-vertices to model that area as infinitesimal small points, e.g. when we later simulate plate movements. And the dual mesh will probably also be useful for simulating drainage areas and rivers, later.
 
 {% include image.html url="/assets/images/02/delauny_voronoi.png" classes="fill_black" description="A delaunay triangulation (grey) of the vertices (red) and its dual, consisting of the circumcenters of the faces (blue) and connecting edges (cyan), forming the voronoi cells." %}
 
-Of these three concepts the most important one for our quad-edge data structure is (as the name suggest) the edge. But the edges we are using here are _directed_, which means they know which vertex they are coming from, which one they are going to and which faces are on their left/right side. And we have not just one edge for each connected vertex but four, that form a quad-edge. Beside these pieces of information, we only need one other datum to describe the complete topology: The outgoing edges from each vertex and face. And we store these as linked-lists of edges, where each edge knows the next edge around its origin (also called an edge-ring).
+Of these three concepts the most important one for our quad-edge data structure is -- as the name suggest -- the edge. Also, the edges we are using are _directed_, which means they know which vertex they are coming from, which one they are going to and which faces are on their left/right side. Because of that we need a total of four vertices for each pair of connected vertices, that form a quad-edge (see image below), to model the two possible direction of both the primal and dual mesh at that point.
+
+Beside these pieces of information, we only need one other datum to describe the complete topology: Which edges start at a given vertex, i.e. the outgoing edges{% note This information is different for the dual mesh. For faces we don't store the outgoing dual-edges but the primal edges that rotate around this face. %}. And we store these as linked-lists of edges, where each edge knows the next edge around its origin (also called an edge-ring).
+
+This might look like a lot of information, but as we will see most of it is redundant and doesn't need to stored directly.
 
 <div class="image_list" markdown="1">
 
@@ -45,11 +51,9 @@ Of these three concepts the most important one for our quad-edge data structure 
 
 {% include image.html url="/assets/images/02/quad_edge/quad_edge.png" classes="fill_black" description="Each edge also knows the other edges that are part of the same quad-edge, which we can access by rotating the edge counter clockwise." %}
 
-{% include image.html url="/assets/images/02/quad_edge/edge_ring.png" classes="fill_black" description="Finally, each edge knows the next edge, when rotating counterclockwise around its vertex/face of origin, i.e. its edge-ring." %}
+{% include image.html url="/assets/images/02/quad_edge/edge_ring.png" classes="fill_black" description="Finally, each edge knows the next edge, when rotating counterclockwise around its vertex of origin, i.e. its edge-ring." %}
 
 </div>
-
-This might look like a lot of information, but as we will see most of it is redundant and doesn't need to stored directly.
 
 The information above describes the complete topology of our mesh, which we can access using the following basic operations:
 - `rot(e)`: Gives us the next edge in a quad-edge. As each quad-edge consists of four edges, the result of the fourth rotation is our initial edge, again.
@@ -58,9 +62,9 @@ The information above describes the complete topology of our mesh, which we can 
 - `dest(e)`: Gives us the destination of an edge.
 - `left(e)`: Gives us the face/vertex on the left side of the edge.
 - `right(e)`: Gives us the face/vertex on the right side of the edge.
-- `origin_next(e)`: Gives us the next edge when rotating counterclockwise around the origin of an edge. Like `rot(e)` this will loop back into itself after we have visited every outgoing edge from the origin.
+- `origin_next(e)`: Gives us the next edge when rotating counterclockwise around the origin of an edge. Like `rot(e)` this will loop back on itself after we have visited every outgoing edge from the origin.
 
-But we can also combine them into more complex operations to traverse the mesh:
+We can also combine these into more complex operations to traverse the mesh:
 - `dest_next(e)`: Same as `origin_next(e)` but gives us the next edge around the destination instead.
 - `left_next(e)`: Gives us the next edge rotating around the left face, i.e. `left(e)` will return the same value and the origin of the returned edge is our destination.
 - `right_next(e)`: Same as `left_next(e)` but rotates around the right face.
@@ -75,8 +79,9 @@ As we've seen all operations above always rotate counterclockwise. So the final 
 
 {% include image.html url="/assets/images/02/quad_edge/origin_next.png" classes="fill_black" description="<code class='highlighter-rouge'>origin_next(e)</code> allows us to iterate over all edges around a vertex or face. As with all operations the direction is counterclockwise and <code class='highlighter-rouge'>origin_prev(e)</code> can be used for clockwise iteration." %}
 
-{% include image.html url="/assets/images/02/quad_edge/dest_next.png" classes="fill_black" description="Similarly, <code class='highlighter-rouge'>dest_next(e)</code> can be used to iterate over all edges with a given destination." %}
-{% include image.html url="/assets/images/02/quad_edge/left_right_next.png" classes="fill_black" description="And finally <code class='highlighter-rouge'>left_next(e)</code> and <code class='highlighter-rouge'>right_next(e)</code> can be used to iterate over all edges that are part of a given face." %}
+{% include image.html url="/assets/images/02/quad_edge/dest_next.png" classes="fill_black" description="Similarly, <code class='highlighter-rouge'>dest_next(e)</code> can be used to iterate over all edges with a given destinationm." %}
+
+{% include image.html url="/assets/images/02/quad_edge/left_right_next.png" classes="fill_black" description="And finally <code class='highlighter-rouge'>left_next(e)</code> can be used to iterate over all edges that are part of a given face." %}
 
 </div>
 
@@ -84,17 +89,17 @@ There is one more operation defined by the paper, that we will ignore here: `fli
 
 ## Implementation
 
-Now that we have seen how quad-edges describe the topology and what operations we need, we can start with the interesting part: Implementing it and looking for potential optimizations
+Now that we have seen how quad-edges describe the topology and what operations we need, we can start with the interesting part: Implementing it and looking for potential optimizations.
 
 First lets reiterate what we need to store:
-1. For each vertex: one outgoing edge (`origin(e)` is our vertex)
-2. For each face: one edge going counterclockwise around the face (`left(e)` is our face)
+1. For each vertex: one outgoing edge (an edge where `origin(e)` is our vertex)
+2. For each face: one edge going counterclockwise around the face (an edge where `left(e)` is our face)
 3. For each edge:
     3. Its siblings, i.e. the three other edges that are part of the same quad-edge.
     3. The next edge, iterating counterclockwise around its origin (`origin_next(e)`).
-    3. The origin/destination vertex and left/right face. Or the origin/destination face and left/right vertex for dual-edges, respectively.
+    3. The origin/destination vertex and left/right face.
 
-One thing we can drop immediately from that list is most of 3.3. Because each edge already knows the other edges of the quad-edge, we only really need to store the origin vertex/face of each edge. Everything else can be reconstructed from just these two:
+One thing we can drop immediately from that list is most of 3.3. Because each edge already knows the other edges of the quad-edge, we only really need to store the origin vertex/face of each edge. Everything else can be reconstructed from just these two, with:
 - `destination(e) == origin(sym(e))`
 - `left(e) == origin(inv_rot(e))`
 - `right(e) == origin(rot(e))`
@@ -109,10 +114,10 @@ If we were to translate that naively to C++ it could look something like this:
 
 ```cpp
 struct Vertex {
-	Edge*    outgoing_edge;        // 1.
+	Edge* outgoing_edge;           // 1.
 };
 struct Face {
-	Edge*    ccw_edge;             // 2.
+	Edge* ccw_edge;                // 2.
 };
 struct Edge {
 	std::array<Edge*, 4> siblings; // 3.1.
@@ -166,11 +171,11 @@ Value: │ 1│ 0│ 1│ 1│...│ 1│ 0│ 0│ 1│
          1 = dual edge            1 = 3. edge of quad-edge (== sym(e) == rot(rot(e)))
 ```
 
-The 31st bit is reserved, so we can decide if the edge belongs to the primal mesh or its dual and the rest is used as the index into the respective vector. But because we allocate the edges continuously, they always come in pairs inside each vector and we can switch between them just by flipping the 0th bit of index. What this means is that we can not only drop the `siblings` member but that we can actually calculate `rot(e)`, `sym(e)` and `inv_rot(e)` using relatively simple bit-wise math instead of chasing pointers!
+The 31st bit is reserved to decide if the edge belongs to the primal mesh or its dual and the rest is used as the index into the respective vector. But because we allocate the edges continuously, they always come in pairs inside each vector and we can switch between them by just flipping the 0th bit of their index. What this means is that we can not only drop the `siblings` member but that we can actually calculate `rot(e)`, `sym(e)` and `inv_rot(e)` using relatively simple bit-wise math instead of chasing pointers!
 
-Since we are already stealing parts of our indices, we will reserve one more value from each as an identifier{% note Which will bring our total number of possible edges down to a meager 2'147'483'645... %} for invalid or unset edges, vertices and faces. These will be important later to define boundary edges or incomplete meshes during construction. But they also allow as to "delete" elements from the mesh. Because the index of an element is also used to reference it, we can't just remove them from the vector, because that would move all later elements, changing their index. Instead, we utilize the invalid IDs to leave "holes" in the vector, that we can skip during processing and fill in later with new vertices/faces/edges.
+Since we are already stealing parts of our indices, we will reserve one more value from each as an identifier{% note Which will bring our total number of possible edges down to a meager 2'147'483'645... %} for invalid or unset edges, vertices and faces. These will be important later to define boundary edges or incomplete meshes during construction. But they also allow as to "delete" elements from the mesh. Because the index of an element is also used to reference it, we can't just remove them from the vector, as that would move all later elements, changing their index. Instead, we'll utilize the invalid IDs to leave "holes" in the vector, that we can skip during processing and fill in later with new vertices/faces/edges.
 
-And that's it, for the most part. As a last step we will just sprinkle a bit of data-oriented design over our structure, by moving our data from the `Vertex`/`Face`/`Edge` struct directly into separate vectors in the Mesh. That doesn't change much in our case, as our structs were already rather small and simple, but could be a wee bit fast for some cases{% note e.g. if we just need to follow the next-Pointer of an edge but don't need the origin of the edge %}. It also simplifies our structs a bit, because we don't need separate structs for `Primal_edge` and `Dual_edge` or inheritance anymore. And finally it frees up `Face`, `Vertex` and `Edge` as type names, that we can then use as type-safe ID-wrappers.{% note The actual implementation follows the same structure, but is a bit more complex because it needs to handle "holes" in the vectors left by modifications. And it's a bit less readable because I'm using a thin C-API over my C++ implementation to achieve ABI stability. Furthermore, I've also left out any constructors, operators and methods here. %}
+And that's it, for the most part. As a last step we'll just sprinkle a bit of data-oriented design over our structure, by moving our data from the `Vertex`/`Face`/`Edge` struct directly into separate vectors in the Mesh. That doesn't change much in our case, as our structs were already rather small and simple, but could be a wee bit fast for some cases{% note e.g. if we just need to follow the next-Pointer of an edge but don't need the origin of the edge %}. And it also frees up `Face`, `Vertex` and `Edge` as type names, that we can then use as type-safe ID-wrappers{% note The actual implementation follows the same structure, but is a bit more complex because it needs to handle "holes" in the vectors left by modifications. And it's a bit less readable because I'm using a thin C-API over my C++ implementation to achieve ABI stability. Furthermore, I've also left out any constructors, operators and methods here. %}. We also dropped the separate types for primal and dual edges, to further simplify the structure. However, it might be interesting to provide separate types to already distinguish them in the type-system, instead of later at runtime. But that is an extension I might look at later. 
 
 ```cpp
 struct Face {
@@ -199,7 +204,7 @@ class Mesh {
 
 ### Operations
 
-We've already seen that we can implement `rot()`, `sym()` and `inv_rot()` as bit-wise operations on the ID, so that is the first thing we will implement{% note All of these methods and constructors could and should of course be constexpr and are in the actual implementation. %}:
+We've already seen that we can implement `rot()`, `sym()` and `inv_rot()` as bit-wise operations on the ID, so that is the first thing we will implement{% note All of these methods and constructors could/should of course be constexpr and are in the actual implementation. %}:
 
 ```cpp
 inline constexpr auto edge_type_bit = uint32_t(1) << 31u;
@@ -224,6 +229,10 @@ struct Edge {
 	// And to decide if an edge belongs to the dual or primal mesh
 	//   we can just shift it, so its highest bit is the only one left
 	bool     is_dual()const { return mask >> 31u; }
+	
+	// A simple operation, we haven't talked about, which gives
+	//   us the first edge of a quad-edge by unsetting both the highest and lowest bit.
+	Edge base()const    { return { mask & ~(edge_type_bit | 1u)}; }
 
 	// As we have seen above, the two primal/dual edges that
 	//   belong to the same quad edge are always at an odd/even
@@ -239,10 +248,6 @@ struct Edge {
 	//   with the second xor (see graphic below)
 	Edge rot()const     { return {(mask ^ edge_type_bit) ^  is_dual()}; }
 	Edge inv_rot()const { return {(mask ^ edge_type_bit) ^ (is_dual() ^ 1u)}; }
-	
-	// And there is one last operation, we haven't talked about,
-	//   which allows us to get the first edge of a quad-edge
-	Edge base()const    { return { mask & ~(edge_type_bit | 1u)}; }
 ```
 
 {% include image.html url="/assets/images/02/quad_edge/rot_math.png" classes="fill_black float_right" description="" %}
@@ -255,7 +260,7 @@ The next step are the `origin(e)`/`dest(e)`/... operations to get the surroundin
 ```cpp
 	Vertex origin(const Mesh& mesh)const {
 		assert(!is_dual());
-		return mesh.primal_edge_origin_.at(mask);
+		return mesh.primal_edge_origin_[mask];
 	}
 	Vertex dest(const Mesh& mesh)const {
 		return sym().origin(mesh);
@@ -277,12 +282,12 @@ The next step are the `origin(e)`/`dest(e)`/... operations to get the surroundin
 	}
 ```
 
-Next are the function to actually traverse the mesh. `origin_next(e)` is again quite simple -- determine the correct vector based on the type of the edge and load the corresponding next pointer -- but implementing all the other in-terms-of it is a bit more complex and perhaps needs a bit of visualization:
+Next are the function to actually traverse the mesh. `origin_next(e)` is again quite simple -- determine the correct vector based on the type of the edge and load the corresponding next pointer -- but implementing all the others in-terms-of it is a bit more complex and perhaps needs a bit of visualization:
 
 ```cpp
 	Edge origin_next(const Mesh& mesh)const {
-		return is_dual() ? mesh.dual_edge_next_.at(index())
-		                 : mesh.primal_edge_next_.at(index());
+		return is_dual() ? mesh.dual_edge_next_[index()]
+		                 : mesh.primal_edge_next_[index()];
 	}
 	Edge origin_prev(const Mesh& mesh)const {
 		return rot().origin_next(mesh).rot();
@@ -312,7 +317,7 @@ Next are the function to actually traverse the mesh. `origin_next(e)` is again q
 {% include image.html url="/assets/images/02/quad_edge/origin_prev.png" classes="fill_black float_right" description="" %}
 One example for the methods above, that shows how `origin_prev()` can be implemented in terms of `origin_next()`.
 
-The key here is that we first rotate the edge, to get the dual edge that points from the right to the left face. Just like with primal edges we can use `origin_next()` to get the next (counterclockwise) edge around the origin, but for dual edges that origin is a face instead of a vertex. So when we rotate our dual edge, we get the dual edge that point "through" the next edge of the right face or in other words `origin_prev()` of our original mesh. And to get this primal edge, we then just need to rotate the dual edge again.
+The key here is that we first rotate the edge, to get the dual edge that points from the right to the left face. Just like with primal edges we can use `origin_next()` to get the next (counterclockwise) edge around the origin, but for dual edges that origin is a face instead of a vertex. So when we rotate our dual edge, we get the dual edge that point "through" the next edge of the right face or in other words `origin_prev()` of our original mesh. And to get this primal edge, we are actually looking for, we then just need to rotate the dual edge again.
 
 <br style="clear:both">
 
@@ -327,7 +332,8 @@ auto e    = edge;
 do {
 	// Get the destination vertex of the current edge
 	auto v = e.dest(mesh);
-	// Use v
+	
+	// Do something with v
 	
 	// Get the next (CCW) edge
 	e = e.origin_next(mesh);
@@ -339,8 +345,8 @@ do {
 
 Precisely because this is a common operation, the actual API provides iterators and methods that simplify the above code to:
 ```cpp
-for(auto v : mesh.neighbors(vertex)) {
-	// Use v
+for(auto v : vertex.neighbors(mesh)) {
+	// Do something with v
 }
 ```
 
@@ -355,7 +361,7 @@ But because these operations are a bit more complex and this post is already far
 
 ## Positions, Elevations and other Additional Information
 
-However, there is one part we have to still talk about. Everything we have talked about so far is purely concerned with the topology -- which vertices/faces are connected to each other -- and doesn't care about how it is actually laid out in space. That is, if it can be laid out without intersecting itself, it doesn't matter if our basic shape is a sphere, cube, plane or tesseract{% note which is quite neat, I think, and allows us a lot of flexibility in the future.%}.
+However, there is one part we still have to talk about. Everything we have talked about so far is purely concerned with the topology -- which vertices/faces are connected to each other -- and doesn't care about how it's actually laid out in space. That is, if it can be laid out without intersecting itself, it doesn't matter if our basic shape is a sphere, cube, plane or tesseract{% note which is quite neat, I think, and allows us a lot of flexibility in the future.%}.
 
 But even if our data structure doesn't care about the positions in space, we still do for many applications and need a way to store them. We've already touched on the fact that we can use the IDs of our vertices/faces/edges to link them to additional information like elevation or temperature, and we will handle their positions in exactly the same way. Because our elements are laid out in a continuous vector in memory{% note While there might be some holes in our data, which we will discuss in the next post, there should never be more than a small percentage and we can ignore that for now.%} and our IDs are based on their position, we can also just use a vector for our addition data and use the IDs to index into them.
 
@@ -387,9 +393,11 @@ class Layer {
 };
 ```
 
-Because `Layer` is a class template it can be used to store all kinds of different data types{% note Also, because of other parts of the system that is currently limited to: bool, int8, int32, float and a 2D and 3D float-Vector %} and can reference vertices, faces and all types of edges. Not all data is directly related to parts of the mesh or might be so sparse that a continuous storage doesn't make sense. For these cases there will also be unstructured data layers, that model a simple key-value store, which me might discuss later.
+Because `Layer` is a class template it can be used to store all kinds of different data types{% note Although, because of other parts of the system that is currently limited to: bool, int8, int32, float and a 2D and 3D float-Vector %} and can reference vertices, faces and all types of edges. 
 
-One thing that might be a bit surprising at first is the number of possible types of edges in `Layer_type`. In addition to the distinction between primal and dual edges, we also differentiate between directed and undirected edges here. While the edges in our mesh are always directed, much of the information we might want to store about them will be identical for both directions. For example when we model plate tectonics and store the type of interaction between all vertices, we would choose `edge_primal` instead of `edge_primal_directed` and only require half the memory to store our data.
+One thing that might be a bit surprising at first is the number of possible types of edges in `Layer_type`. In addition to the distinction between primal and dual edges, we also differentiate between directed and undirected edges here. While the edges in our mesh are always directed, much of the information we might want to store about them will be identical for both directions. For example when we model plate tectonics and store the distance between neighboring vertices, we would choose `edge_primal` instead of `edge_primal_directed` and only require half the memory to store our data.
+
+Not all data is directly related to parts of the mesh or might be so sparse that a continuous storage doesn't make sense. For these cases there will also be unstructured data layers, that model a simple key-value store, which me might discuss later.
 
 ## World Class
 
@@ -399,17 +407,14 @@ As already noted the Layers might need to be updated whenever the mesh is modifi
 class World {
   public:
 	const Mesh& mesh() const;
+	Mesh_lock   lock_mesh();
 
-	const Dict* layer(std::string_view id) const;
+	const Dict*             layer(std::string_view id) const;
+	Unstructured_layer_lock lock_layer(std::string_view id);
 
 	template <typename LayerInfo>
 	const typename LayerInfo::layer_t* layer(const LayerInfo& info) const;
-
-
-	Mesh_lock lock_mesh();
-
-	Unstructured_layer_lock lock_layer(std::string_view id);
-
+	
 	template <typename LayerInfo>
 	Layer_lock<LayerInfo> lock_layer(const LayerInfo& info);
 
@@ -418,7 +423,7 @@ class World {
 };
 ```
 
-In contrast to the types we have seen previously, the `const` and non-`const` getters are rather different here and also have different names. Because a complete `World` will be a pretty large and complex object with many layers, it is not feasible to copy it completely. But creating copies of the current state of a `World` will be required later to implement an undo/redo functionality in the editor. To solve this the `World` class implements copy-on-write semantics for the objects it contains. That means when a `World` is copied it still references the data of the original and only when one of them is modified the affected data -- and only it -- is actually copied. But to track these modifications we need a bit of machinery, provided here by the `..._lock` classes and `lock_...` methods. This recording of modifications will also allow us to check when the underlying data has been modified and for example cache the textures and vertex buffers used by the renderer.
+In contrast to the types we have seen previously, the `const` and non-`const` getters are rather different here and also have different names. Because a complete `World` will be a pretty large and complex object with many layers, it is not feasible to copy it completely. But creating copies of the current state of a `World` will be required later to implement an undo/redo functionality in the editor. To solve this, the `World` class implements copy-on-write semantics for the objects it contains. That means when a `World` is copied it still references the data of the original and only when one of them is modified the affected data -- and only it -- is actually copied. But to track these modifications we need a bit of machinery, provided here by the `..._lock` classes and `lock_...` methods. This recording of modifications will also allow us to check when the underlying data has been modified and for example cache the textures and vertex buffers used by the renderer.
 
 Besides the `mesh()` getter the class also contains to getters for layers, one for simple unstructured layers -- that just have a name -- and one for our more complex mesh-based layers.{% note Both of the layer-getters return a pointer, because the layer might not exist, yet. But there is always a mesh, even though it might still be empty.%} The latter is again a template, which hopefully is not that surprising because our `Layer` was also a template. But the parameter of the method probably warrants some further explanation. Every layer has a name with which it's referenced in the procedural generation code, but it also has a couple of additional metadata linked to it:
 1. The type of the data that it stores (`T` template parameter in `Layer`)

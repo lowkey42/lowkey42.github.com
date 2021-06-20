@@ -19,22 +19,22 @@ So what we will do instead is to define our own operations, based on how they wi
 ```cpp
 class Mesh {
   public:
-	// Create a new vertex, that is not connected to anything (i.e. their vertex_edge is no_edge)
+	// Create a new vertex, that is not connected to anything (i.e. its vertex_edge is no_edge)
 	Vertex add_vertex();
 	
-	// Connect the three passed vertices (in counterclockwise order) into a new triangle face
+	// Connect the three passed vertices into a new triangle face (in counterclockwise order)
 	Face   add_face(Vertex a, Vertex b, Vertex c);
 };
 ```
 
-While these operations are much easier to use, their implementation is also quite a bit more complex. So before we get into the implementation details, we'll first take a look at how they will be used to construct a spherical mesh for our world.
+While these operations are much easier to use, their implementation is also quite a bit more complex. So, to make this less theoretical, we'll first take a look at how they will be used to construct a spherical mesh for our world, before we get into the implementation details.
 
 ## Creating a Sphere
 
-As already stated in the first post, I want to generate spherical worlds{% note at least for now%}. The first step of this we be generating and simulating a tectonic plates.
+As stated in the first post, I want to initially focus on generating spherical worlds. The first step of this we be generating and simulating tectonic plates.
 Of course, plate tectonics in the real world are much more complex than I can hope to simulate. But I'm not aiming for perfect, but just close enough and I'm mostly interested in the high-level features like mountain ranges and not so much in the complex formation, layering and folding of plates.
 
-My simplified model will mainly be based on the work of [Cortial et al.](https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf), deviating on some details were it suits my specific goals or way the paper didn't specify enough details.
+My simplified model will mainly be based on the work of [Cortial et al.](https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf), deviating on some details were it suits my specific goals or where the paper didn't specify enough details.
 
 The basic approach is modelling tectonic plates as a set of points on the surface of a sphere, not dissimilar to particle based fluid simulations. So the first step is to evenly distribute a number of sampling points on the surface and then partition them into individual plates. By doing this we simplified a complex 3D phenomenon into a manageable 2D one, which means that we'll lose many of the complex details -- like folding of plates -- but terrain features like mountain ranges and coastlines should hopefully still be retained.
 
@@ -44,10 +44,10 @@ Not entirely coincidentally, this model maps quite well to the triangle mesh we'
 {% include image.html url="/assets/images/03/cube_sphere.jpg" classes="float_right" description="Cube Sphere<sup><a target='_blank' href='https://catlikecoding.com/unity/tutorials/cube-sphere/'>[source]</a></sup>" %}
 {% include image.html url="/assets/images/03/subdivided_icosahedron.png" classes="float_right" description="Subdivided Icosahedron<sup><a target='_blank' href='https://en.wikipedia.org/wiki/File:Geodesic_icosahedral_polyhedron_example.png'>[source]</a></sup>" %}
 
-So first, we'll need to distribute our vertices (i.e. sampling points) on the spheres surface. To have the ideal starting conditions for the simulation algorithms, the points should be evenly distributed on the surface. That means that the distance between the two closest vertices should be as large as possible. Perhaps surprisingly, evenly distributing points on a sphere is a quite complex problem. And there are also several common ways to define spherical meshes. The most common of which are:
+So first, we'll need to distribute our vertices (i.e. sampling points) on the spheres surface. To have the ideal starting conditions for the simulation algorithms, the points should be evenly distributed on the surface. That means that the distance between the two closest vertices should be as large as possible. Perhaps surprisingly, evenly distributing points on a sphere is a quite complex problem. And there are several common ways to define spherical meshes. The most common of which are:
 - UV Sphere: Uses rings of square faces to cut up the sphere, similar to the latitude and longitude lines used in cartographie. While it approximates the surface of a sphere pretty well, the distribution of vertices is pretty uneven especially at the poles and equator
 - Cube Sphere: Starts with a cube, tessellates its faces and then projects the vertices on the surface of the sphere. The nice property of this mapping is that it allows to easily map the sphere back to a flat surface, because it's derived from a cube. But while it's less unevenly distributed than UV-Spheres, the distribution is still far from uniform.
-- Subdivided Icosahedron: This is probably the most common way to define a sphere mesh with evenly distributed vertices. The shape starts as an icosahedron (with 12 vertices) that loosely approximates the sphere. To get a better approximation the next step is to subdivide its triangular faces into smaller triangles and then project each vertex onto the spheres surface. After a couple such subdivisions this approximation gets relatively close to a real sphere and keeps the uniform distance between its vertices, which would make it a nice option for us. But a problem with this approach is that the number of vertices is defined by the number of subdivisions and increases quadratically (12, 42, 162, 642, 2562, ...), which limits our options for the initial resolution.
+- Subdivided Icosahedron: This is probably the most common way to define a sphere mesh with evenly distributed vertices. The shape starts as an icosahedron with 12 vertices that loosely approximates the sphere. To get a better approximation the next step is to subdivide its triangular faces into smaller triangles and then project each vertex onto the spheres surface. After a couple such subdivisions this approximation gets relatively close to a real sphere and keeps the uniform distance between its vertices, which would make it a nice option for us. But a problem with this approach is that the number of vertices is defined by the number of subdivisions and increases quadratically (12, 42, 162, 642, 2562, ...), which limits our options for the initial resolution more than I would prefer.
 
 <br style="clear: both">
 
@@ -55,7 +55,7 @@ So first, we'll need to distribute our vertices (i.e. sampling points) on the sp
 
 The subdivided Icosahedron would probably work for us, but I don't particularly like the restrictive vertex count options forced upon use by the recursive subdivision. So we'll instead use Fibonacci Spheres, which have a similar nice uniform distribution, but are not limited to particular vertex counts.
 
-I won't go into too much detail about how they are computed, as [others](http://extremelearning.com.au/how-to-evenly-distribute-points-on-a-sphere-more-effectively-than-the-canonical-fibonacci-lattice/) have already covered that far better than I probably could. But to put it simply, they utilize the golden spiral (aka the Fibonacci spiral) to uniformly distribute points on a surface. This similar to the way [some plants distribute their leaves or seeds](https://www.youtube.com/watch?v=1Jj-sJ78O6M), by placing each point $$2\pi \cdot (2-\phi)$$ radians {% note = approx. 137.507... degrees%} (where $$\phi$$ is the golden ratio) further along a spiral path from the center. So for $$N$$ points in a 2D spherical coordinate system we would use something like:
+I won't go into too much detail about how they are computed, as [others](http://extremelearning.com.au/how-to-evenly-distribute-points-on-a-sphere-more-effectively-than-the-canonical-fibonacci-lattice/) have already covered that far better than I probably could. But to put it simply, they utilize the golden spiral (aka the Fibonacci spiral) to uniformly distribute points on a surface. This is similar to the way [some plants distribute their leaves or seeds](https://www.youtube.com/watch?v=1Jj-sJ78O6M), by placing each point $$2\pi \cdot (2-\phi)$$ radians {% note = approx. 137.507... degrees%} further along a spiral path from the center, where $$\phi$$ is the golden ratio. So for $$N$$ points in a 2D spherical coordinate system we would use something like:
 
 $$(\theta, r)_i = (i \cdot 2\pi \cdot (2\phi), \frac{i}{N})$$
 
@@ -101,11 +101,11 @@ for(std::int32_t i = 0; i < vertices; i++) {
 	const auto z     = std::sin(theta) * r;
 
 	// Set the vertex position (multiplying with the radius of our sphere)
-	positions[Vertex(i)] = {x * radius, y * radius, z * radius};
+	positions[Vertex(i)] = Vec3{x, y, z} * radius;
 }
 ```
 
-Until now, we only defined our vertices as a cloud of points without any connectivity. So the next step is to compute the delaunay triangulation of these points. There are again a couple ways to achieve this, but the easiest is to utilize the fact that the delaunay triangulation of points on the surface of a sphere is identical to the convex hull of said points. Hence all that's left to do is import [a library that computes the convex hull](https://github.com/akuukka/quickhull). The library already gives us a list of faces, that we just need to pass onto the `add_face()` function of `Mesh`{% note There is one special case we are ignoring here: The faces from quickhull can be in any order, but as we'll see below there are cases that add_face can't handle. To fix this ordering problem, we simply memorize all faces that couldn't be added and retry afterwards, until all the mesh is complete.%}:
+Until now, we only defined our vertices as a cloud of points without any connectivity. So the next step is to compute the delaunay triangulation of these points. There are again a couple ways to achieve this, but the easiest is to utilize the fact that the delaunay triangulation of points on the surface of a sphere is identical to the convex hull of said points. Hence all that's left to do is import [a library that computes the convex hull](https://github.com/akuukka/quickhull). The library already gives us a list of faces, that we just need to pass onto the `add_face()` function of `Mesh`{% note There is one special case we are ignoring here: The faces from quickhull can be in any order, but as we'll see below there are cases that add_face can't handle. To fix this ordering problem, we simply memorize all faces that couldn't be added and retry afterwards, until the mesh is complete.%}:
 
 ```cpp
 quickhull::QuickHull<float> qh;
@@ -117,7 +117,7 @@ for(std::size_t i = 0; i < indices.size(); i += 3) {
 }
 ```
 
-As can be seen in the images below, the vertices are distributed evenly on the surface ... too evenly. In some cases we might want a more natural and less uniform look. This can be achieved quite easily by adding a small offset (`0<=offset<1.0`) to the loop variable `i` before its used int the calculations:
+As can be seen in the images below, the vertices are distributed evenly on the surface ... perhaps too evenly. In some cases we might want a more natural and less uniform look. This can be achieved quite easily by adding a small random offset (`0 <= offset < 1.0`) to the loop variable `i` before its used int the calculations:
 ```cpp
 const auto offset = perturbation > 0 ? rand->uniform(0.f, perturbation) : 0.f;
 auto       ii    = std::min(i + offset, vertices - 1.f);
@@ -139,7 +139,7 @@ auto       ii    = std::min(i + offset, vertices - 1.f);
 
 ## Implementing add_face
 
-As said above implementing this operation is not as straightforward as one might hope. The main problem is triangles might be added in (nearly) any order and we need to update the connectivity information correctly for all possible cases. Which means that we have to update the `origin_next(e)` reference for all modified primal and dual edges, to preserve valid edge-rings.
+As said above, implementing this operation is not as straightforward as one might hope. The main problem is triangles might be added in (nearly) any order and we need to update the connectivity information correctly for all possible cases. Which boils down to updating the `origin_next(e)` references for all modified primal and dual edges, to preserve valid edge-rings.
 
 
 <div class="image_list" markdown="1">
@@ -148,15 +148,17 @@ As said above implementing this operation is not as straightforward as one might
 
 {% include image.html url="/assets/images/03/mesh_construction/edge_ring_dual.png" classes="fill_black" description="Similarly, <code class='highlighter-rouge'>origin_next(e)</code> for dual edges must form an edge-ring counterclockwise around a face." %}
 
-{% include image.html url="/assets/images/03/mesh_construction/edge_ring_dual_boundary.png" classes="fill_black" description="A special case for dual edges are boundaries of unclosed geometry. At boundaries edge miss their left or right face, which is normally not allowed. To bypass that restriction we treat the outside of our shape as a single imaginary face (the only face that doesn't have to be triangular) with the highest possible ID (all bits are 1). Of course, this face also has an edge-ring, consisting of the <code class='highlighter-rouge'>rot(e)</code> of every boundary edge. While the order of the edges looks clockwise here, but is technically still counterclockwise, when seen from the imaginary boundary face." %}
+{% include image.html url="/assets/images/03/mesh_construction/edge_ring_dual_boundary.png" classes="fill_black" description="A special case for dual edges are boundaries of unclosed geometry. At boundaries edge miss their left or right face, which is normally not allowed. To bypass that restriction we treat the outside of our shape as a single imaginary face (the only face that doesn't have to be triangular) with the highest possible ID (all bits are 1). Of course, this face also has an edge-ring, consisting of the <code class='highlighter-rouge'>rot(e)</code> of every boundary edge. While the order of the edges looks clockwise here, it's technically still counterclockwise, when seen from the perspective of the imaginary boundary face." %}
 
 </div>
 
 {% include image.html url="/assets/images/03/mesh_construction/forbidden_case.png" classes="fill_black float_right half_size" description="Forbidden case: The central vertex is already used by two faces, that are not connected by another face. When we want to add a new face that is not connected to one of the existing faces, we can't decide if it should be inserted at the top (A) or bottom (B)." %}
 
-Because our mesh implementation doesn't know about the position of vertices, we need to enforce one additional restriction on valid topologies: If multiple unconnected faces share a vertex, a new face can only be added to that vertex, if it shares an edge with one of the faces. The problem we solve with this restriction is, that we need to know the order of the faces around a vertex, in order to be able to insert the edges at the correct positions in their new edge-rings. This ambiguity could{% note and normaly is%} also be resolved by comparing the positions of the connected vertices. But with this small restriction we buy use the possibility to ignore the vertex positions completely here and look at on the topology only in terms of which vertices/faces are connected, without knowing how they will be laid out in space.
+Because our mesh implementation doesn't know about the position of vertices, we need to enforce one additional restriction on valid topologies: If multiple unconnected faces share a vertex, a new face can only be added to that vertex, if it shares an edge with one of the faces. The problem we solve with this restriction is, that we need to know the order of the faces around a vertex, in order to be able to insert the edges at the correct positions in their new edge-rings. This ambiguity could{% note and normaly is%} also be resolved by comparing the positions of the connected vertices. But with this small restriction we buy us the possibility to ignore the vertex positions completely here and look at the topology only in terms of which vertices/faces are connected, without knowing how they will be laid out in space.
 
-Thanks to our restrictions we only have to handle 8 different cases in total. One for each of the three quad-edges of the new face, that could either be missing or already exist. Luckily most of these are rotationally symmetrical and we only need to look at 4 distinct cases, that we can identify by counting the number of already existing edges.
+<br style="clear:both">
+
+When we take this restriction into account and simplify the problem a bit, we only have to handle 8 different cases in total. One for each of the three quad-edges of the new face, that could either be missing or already exist. Luckily most of these are rotationally symmetrical and we only need to look at 4 distinct cases, that we can identify by counting the number of already existing edges.
 
 ### Case 0: No Preexisting Edges
 
@@ -174,7 +176,7 @@ The simplest case -- and also the first one we need when we construct a new mesh
 
 {% include image.html url="/assets/images/03/mesh_construction/insert_1_blank.png" classes="fill_black float_right" description="" %}
 
-The next case is a bit more complex: One of our edges already exists. What that means is that we add our face onto another face, which with we share a single edge.
+The next case is a bit more complex: One of our edges already exists. What that means is that we add our face onto another face, with which we share a single edge.
 
 The complexity here comes from the fact that we need to insert our new edges into existing edge-rings. To be exact the complex part is finding the correct edge-ring and insert position, i.e. the edge that should be directly in front of us in the ring. In contrast, the insertion itself is relatively easy{% note The code below expects primal edges, but the code for dual edges would function identical. %}:
 
@@ -193,7 +195,7 @@ void insert_after(Edge predecessor, Edge new_edge) {
 }
 ```
 
-It's a relatively common case, that we know our successor but not our predecessor. If that is the case, we can just use `origin_prev(e)` to get its predecessor and insert ourselves between them. One thing we need to keep in mind though, is that the traversal operations won't work as expected if we already modified part of the topology. So the usual procedure is that we load and remember all information about the current topology that we will need and only modify it afterwards, whereby we achieve a consistent view of the topology.
+It's a relatively common case, that we know our successor but not our predecessor. If that is the case, we can just use `origin_prev(e)` to get its predecessor and insert ourselves between them. One thing we need to keep in mind though, is that the traversal operations won't work as expected if we already modified part of the topology. So the usual procedure is that we calculate and remember all information about the current topology that we will need and only modify it afterwards, whereby we achieve a consistent view of the topology.
 
 ```cpp
 void insert_before(Edge successor, Edge new_edge) {

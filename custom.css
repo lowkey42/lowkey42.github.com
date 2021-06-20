@@ -179,14 +179,17 @@
 	padding-left: 0.25em;
 }
 
-.site-container h2 {
+.site-container.post-site h2 {
 	text-decoration: underline;
 	margin-top: 2em;
 }
-.site-container h3 {
+.site-container.post-site h3 {
 	margin-top: 1.2em;
 	margin-bottom: -0.2em;
 	font-size: 1.2rem;
+}
+.site-container.post-site h4 {
+	font-size: 1rem;
 }
 .site-container p {
 	margin-top: 0.5em;

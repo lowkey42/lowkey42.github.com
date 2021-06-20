@@ -1,0 +1,385 @@
+I"M�<p>In the last post we’ve looked at how we can store our geometry, how we can traverse the resulting mesh and how we’ll later store our actual data. But one aspect we haven’t looked at yet is how we construct such a mesh data structure in the first place, i.e. how we get from a soup of triangle faces to a quad-edge mesh.</p>
+
+<p>There are two basic operations defined in the original paper to construct and modify meshes:</p>
+<ul>
+  <li>MakeEdge: Creates a new edge <code>e</code> and its corresponding quad-edge</li>
+  <li>Splice: Takes two edges <code>a</code> and <code>b</code> and either connects them or splits them apart, if they are already connected.</li>
+</ul>
+
+<p>While these two operations are quite powerful and can be used to construct any quad-edge mesh and apply any modification we might want, they are not ideal for our use-case. First they are rather more complex to use, than I would like for everyday use, because they require quite a bit of knowledge about topology and use concepts that are not as easy to visualize as faces in a triangle mesh. And secondly, they allow for structures that we don’t actually want to support, like non-triangular faces.</p>
+
+<p>So what we will do instead is to define our own operations, based on how they will be used later. In this post we will first look at just the construction of a new mesh, for which we’ll just define two functions:
+<!--more--></p>
+<pre><code class="language-cpp">class Mesh {
+  public:
+	// Create a new vertex, that is not connected to anything (i.e. its vertex_edge is no_edge)
+	Vertex add_vertex();
+	
+	// Connect the three passed vertices into a new triangle face (in counterclockwise order)
+	Face   add_face(Vertex a, Vertex b, Vertex c);
+};
+</code></pre>
+
+<p>While these operations are much easier to use, their implementation is also quite a bit more complex. So, to make this less theoretical, we’ll first take a look at how they will be used to construct a spherical mesh for our world, before we get into the implementation details.</p>
+
+<h2 id="creating-a-sphere">Creating a Sphere</h2>
+
+<p>As stated in the first post, I want to initially focus on generating spherical worlds. The first step of this we be generating and simulating tectonic plates.
+Of course, plate tectonics in the real world are much more complex than I can hope to simulate. But I’m not aiming for perfect, but just close enough and I’m mostly interested in the high-level features like mountain ranges and not so much in the complex formation, layering and folding of plates.</p>
+
+<p>My simplified model will mainly be based on the work of <a href="https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf">Cortial et al.</a>, deviating on some details were it suits my specific goals or where the paper didn’t specify enough details.</p>
+
+<p>The basic approach is modelling tectonic plates as a set of points on the surface of a sphere, not dissimilar to particle based fluid simulations. So the first step is to evenly distribute a number of sampling points on the surface and then partition them into individual plates. By doing this we simplified a complex 3D phenomenon into a manageable 2D one, which means that we’ll lose many of the complex details – like folding of plates – but terrain features like mountain ranges and coastlines should hopefully still be retained.</p>
+
+<p>Not entirely coincidentally, this model maps quite well to the triangle mesh we’ve defined so far. Each of our vertices will be a sampling point – representing the properties of the voronoi cell around it – and connected through edges to its nearest neighbors. This will also simplify the simulation, because when we need to calculate the interactions with every neighboring voronoi cell, we just need to iterate over all neighbors of the vertex.</p>
+
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/03/UV_sphere.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/UV_sphere.png" alt="" />
+	</a>
+  <figcaption>UV Sphere<sup><a target="_blank" href="https://commons.wikimedia.org/wiki/File:UV_unwrapped_sphere.png">[source]</a></sup></figcaption>
+</figure>
+
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/03/cube_sphere.jpg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/cube_sphere.jpg" alt="" />
+	</a>
+  <figcaption>Cube Sphere<sup><a target="_blank" href="https://catlikecoding.com/unity/tutorials/cube-sphere/">[source]</a></sup></figcaption>
+</figure>
+
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/03/subdivided_icosahedron.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/subdivided_icosahedron.png" alt="" />
+	</a>
+  <figcaption>Subdivided Icosahedron<sup><a target="_blank" href="https://en.wikipedia.org/wiki/File:Geodesic_icosahedral_polyhedron_example.png">[source]</a></sup></figcaption>
+</figure>
+
+<p>So first, we’ll need to distribute our vertices (i.e. sampling points) on the spheres surface. To have the ideal starting conditions for the simulation algorithms, the points should be evenly distributed on the surface. That means that the distance between the two closest vertices should be as large as possible. Perhaps surprisingly, evenly distributing points on a sphere is a quite complex problem. And there are several common ways to define spherical meshes. The most common of which are:</p>
+<ul>
+  <li>UV Sphere: Uses rings of square faces to cut up the sphere, similar to the latitude and longitude lines used in cartographie. While it approximates the surface of a sphere pretty well, the distribution of vertices is pretty uneven especially at the poles and equator</li>
+  <li>Cube Sphere: Starts with a cube, tessellates its faces and then projects the vertices on the surface of the sphere. The nice property of this mapping is that it allows to easily map the sphere back to a flat surface, because it’s derived from a cube. But while it’s less unevenly distributed than UV-Spheres, the distribution is still far from uniform.</li>
+  <li>Subdivided Icosahedron: This is probably the most common way to define a sphere mesh with evenly distributed vertices. The shape starts as an icosahedron with 12 vertices that loosely approximates the sphere. To get a better approximation the next step is to subdivide its triangular faces into smaller triangles and then project each vertex onto the spheres surface. After a couple such subdivisions this approximation gets relatively close to a real sphere and keeps the uniform distance between its vertices, which would make it a nice option for us. But a problem with this approach is that the number of vertices is defined by the number of subdivisions and increases quadratically (12, 42, 162, 642, 2562, …), which limits our options for the initial resolution more than I would prefer.</li>
+</ul>
+
+<p><br style="clear: both" /></p>
+
+<figure class="captioned_image float_right">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="" autoplay="">
+		<source src="/assets/images/03/sphere_points.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Rotating Fibonacci Sphere</figcaption>
+</figure>
+
+<p>The subdivided Icosahedron would probably work for us, but I don’t particularly like the restrictive vertex count options forced upon use by the recursive subdivision. So we’ll instead use Fibonacci Spheres, which have a similar nice uniform distribution, but are not limited to particular vertex counts.</p>
+
+<p>I won’t go into too much detail about how they are computed, as <a href="http://extremelearning.com.au/how-to-evenly-distribute-points-on-a-sphere-more-effectively-than-the-canonical-fibonacci-lattice/">others</a> have already covered that far better than I probably could. But to put it simply, they utilize the golden spiral (aka the Fibonacci spiral) to uniformly distribute points on a surface. This similar to the way <a href="https://www.youtube.com/watch?v=1Jj-sJ78O6M">some plants distribute their leaves or seeds</a>, by placing each point <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>π</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>2</mn><mo>−</mo><mi>ϕ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2\pi \cdot (2-\phi)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span></span></span></span> radians <sup class="footnote" onclick="showFootnote(this)" title="= approx. 137.507... degrees">[1]</sup> (where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">\phi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">ϕ</span></span></span></span> is the golden ratio) further along a spiral path from the center. So for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> points in a 2D spherical coordinate system we would use something like:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo separator="true">,</mo><mi>r</mi><msub><mo stretchy="false">)</mo><mi>i</mi></msub><mo>=</mo><mo stretchy="false">(</mo><mi>i</mi><mo>⋅</mo><mn>2</mn><mi>π</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>2</mn><mi>ϕ</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mfrac><mi>i</mi><mi>N</mi></mfrac><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(\theta, r)_i = (i \cdot 2\pi \cdot (2\phi), \frac{i}{N})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:2.02252em;vertical-align:-0.686em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3365200000000002em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span></span></span></span></span>
+
+<p>Now all that is left to use this on the surface of our sphere is to extend it from 2D spherical coordinates to 3D Cartesian coordinates. This can be done by cutting the sphere into circles along the Y-axis, by deriving the Y coordinate directly from the current index <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi></mrow><annotation encoding="application/x-tex">i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.65952em;vertical-align:0em;"></span><span class="mord mathnormal">i</span></span></span></span>. Based on the radius of the sphere, we can then derive the radius of the current circle and calculating X and Z from the angle given by the equation above. So for the unit sphere with radius 1 and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> points we get:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.2500em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>y</mi><mi>i</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>1</mn><mo>−</mo><mfrac><mrow><mn>2</mn><mi>i</mi></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></mfrac></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>r</mi><mi>i</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><msqrt><mrow><mn>1</mn><mo>−</mo><msubsup><mi>y</mi><mi>i</mi><mn>2</mn></msubsup></mrow></msqrt></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>θ</mi><mi>i</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>i</mi><mo>⋅</mo><mn>2</mn><mi>π</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>2</mn><mo>−</mo><mi>ϕ</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo separator="true">,</mo><mi>z</mi><msub><mo stretchy="false">)</mo><mi>i</mi></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">(</mo><mi>c</mi><mi>o</mi><mi>s</mi><mo stretchy="false">(</mo><msub><mi>θ</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi>r</mi><mi>i</mi></msub><mo separator="true">,</mo><msub><mi>y</mi><mi>i</mi></msub><mo separator="true">,</mo><mi>s</mi><mi>i</mi><mi>n</mi><mo stretchy="false">(</mo><msub><mi>θ</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi>r</mi><mi>i</mi></msub><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align*}
+y_i &amp;= 1 - \frac{2i}{N-1}\\
+
+r_i &amp;= \sqrt{1-y_i^2} \\
+
+\theta_i &amp;= i \cdot 2\pi \cdot (2-\phi) \\\\
+
+(x,y,z)_i &amp;= (cos(\theta_i) \cdot r_i, y_i, sin(\theta_i) \cdot r_i)
+\end{align*}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:9.045849999999998em;vertical-align:-4.272924999999999em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.772925em;"><span style="top:-6.772925em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-4.410198em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.723595000000001em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.2235950000000013em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"></span></span><span style="top:0.2764049999999987em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal" style="margin-right:0.04398em;">z</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:4.272924999999999em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.772925em;"><span style="top:-6.772925em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3365200000000002em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693300000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-4.410198em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.2933970000000001em;"><span class="svg-align" style="top:-3.8em;"><span class="pstrut" style="height:3.8em;"></span><span class="mord" style="padding-left:1em;"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7959080000000001em;"><span style="top:-2.4231360000000004em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.0448000000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.27686399999999994em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.2533969999999997em;"><span class="pstrut" style="height:3.8em;"></span><span class="hide-tail" style="min-width:1.02em;height:1.8800000000000001em;"><svg width='400em' height='1.8800000000000001em' viewBox='0 0 400000 1944' preserveAspectRatio='xMinYMin slice'><path d='M983 90
+l0 -0
+c4,-6.7,10,-10,18,-10 H400000v40
+H1013.1s-83.4,268,-264.1,840c-180.7,572,-277,876.3,-289,913c-4.7,4.7,-12.7,7,-24,7
+s-12,0,-12,0c-1.3,-3.3,-3.7,-11.7,-7,-25c-35.3,-125.3,-106.7,-373.3,-214,-744
+c-10,12,-21,25,-33,39s-32,39,-32,39c-6,-5.3,-15,-14,-27,-26s25,-30,25,-30
+c26.7,-32.7,52,-63,76,-91s52,-60,52,-60s208,722,208,722
+c56,-175.3,126.3,-397.3,211,-666c84.7,-268.7,153.8,-488.2,207.5,-658.5
+c53.7,-170.3,84.5,-266.8,92.5,-289.5z
+M1001 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.546603em;"><span></span></span></span></span></span></span></span><span style="top:-2.723595000000001em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span></span></span><span style="top:0.2764049999999987em;"><span class="pstrut" style="height:3.33652em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mopen">(</span><span class="mord mathnormal">cos</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">in</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:4.272924999999999em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>Combining all this, the code that generates our vertex positions looks like this:</p>
+
+<pre><code class="language-cpp">// Define the data layer that contains the vertex positions in 3D Cartesian coordinates
+constexpr auto position_info = Layer_info&lt;Vec3, Layer_type::vertex&gt;("position");
+
+// Acquire all necessary resources from the world structure
+auto mesh        = world.lock_mesh();
+auto [positions] = world.lock_layer(position_info);
+auto rand        = world.lock_random();
+
+// Create N vertices
+mesh-&gt;add_vertices(vertex_count);
+
+// Pre-calculate the golden angle and the step-size for calculating y,
+//   so we just need to multiply them with i in the loop
+constexpr auto golden_angle = 2.f * std::numbers::pi_v&lt;float&gt; * (2.f - std::numbers::phi_v&lt;float&gt;);
+const auto     step_size    = 2.f / (vertices - 1);
+
+for(std::int32_t i = 0; i &lt; vertices; i++) {
+	// Calculate the x/y/z position of the current vertex on the unit sphere
+	const auto y     = 1.f - step_size * i;
+	const auto r     = std::sqrt(1 - y * y);
+	const auto theta = golden_angle * i;
+	const auto x     = std::cos(theta) * r;
+	const auto z     = std::sin(theta) * r;
+
+	// Set the vertex position (multiplying with the radius of our sphere)
+	positions[Vertex(i)] = {x * radius, y * radius, z * radius};
+}
+</code></pre>
+
+<p>Until now, we only defined our vertices as a cloud of points without any connectivity. So the next step is to compute the delaunay triangulation of these points. There are again a couple ways to achieve this, but the easiest is to utilize the fact that the delaunay triangulation of points on the surface of a sphere is identical to the convex hull of said points. Hence all that’s left to do is import <a href="https://github.com/akuukka/quickhull">a library that computes the convex hull</a>. The library already gives us a list of faces, that we just need to pass onto the <code>add_face()</code> function of <code>Mesh</code><sup class="footnote" onclick="showFootnote(this)" title="There is one special case we are ignoring here: The faces from quickhull can be in any order, but as we'll see below there are cases that add_face can't handle. To fix this ordering problem, we simply memorize all faces that couldn't be added and retry afterwards, until all the mesh is complete.">[2]</sup>:</p>
+
+<pre><code class="language-cpp">quickhull::QuickHull&lt;float&gt; qh;
+auto  hull    = qh.getConvexHull(&amp;positions.begin()-&gt;x, positions.size(), false, true);
+auto&amp; indices = hull.getIndexBuffer();
+
+for(std::size_t i = 0; i &lt; indices.size(); i += 3) {
+	mesh-&gt;add_face(indices[i], indices[i+1], indices[i+2]);
+}
+</code></pre>
+
+<p>As can be seen in the images below, the vertices are distributed evenly on the surface … too evenly. In some cases we might want a more natural and less uniform look. This can be achieved quite easily by adding a small offset (<code>0&lt;=offset&lt;1.0</code>) to the loop variable <code>i</code> before its used int the calculations:</p>
+<pre><code class="language-cpp">const auto offset = perturbation &gt; 0 ? rand-&gt;uniform(0.f, perturbation) : 0.f;
+auto       ii    = std::min(i + offset, vertices - 1.f);
+// then use ii instead of i in the body of the loop
+</code></pre>
+
+<div class="image_list">
+
+  <figure class="captioned_image ">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/03/sphere_triangles.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Wireframe of the generated mesh</figcaption>
+</figure>
+
+  <figure class="captioned_image ">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/03/sphere_shaded.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Shaded rendering of the same sphere</figcaption>
+</figure>
+
+  <figure class="captioned_image ">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/03/sphere_noise.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Sphere with more vertices and a small random perturbation</figcaption>
+</figure>
+
+</div>
+
+<h2 id="implementing-add_face">Implementing add_face</h2>
+
+<p>As said above implementing this operation is not as straightforward as one might hope. The main problem is triangles might be added in (nearly) any order and we need to update the connectivity information correctly for all possible cases. Which means that we have to update the <code>origin_next(e)</code> reference for all modified primal and dual edges, to preserve valid edge-rings.</p>
+
+<div class="image_list">
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/edge_ring_primal.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/edge_ring_primal.png" alt="" />
+	</a>
+  <figcaption><code class="highlighter-rouge">origin_next(e)</code> for primal edges must always form an edge-ring that contains all primal edges with the same origin vertex, in counterclockwise order.</figcaption>
+</figure>
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/edge_ring_dual.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/edge_ring_dual.png" alt="" />
+	</a>
+  <figcaption>Similarly, <code class="highlighter-rouge">origin_next(e)</code> for dual edges must form an edge-ring counterclockwise around a face.</figcaption>
+</figure>
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/edge_ring_dual_boundary.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/edge_ring_dual_boundary.png" alt="" />
+	</a>
+  <figcaption>A special case for dual edges are boundaries of unclosed geometry. At boundaries edge miss their left or right face, which is normally not allowed. To bypass that restriction we treat the outside of our shape as a single imaginary face (the only face that doesn't have to be triangular) with the highest possible ID (all bits are 1). Of course, this face also has an edge-ring, consisting of the <code class="highlighter-rouge">rot(e)</code> of every boundary edge. While the order of the edges looks clockwise here, but is technically still counterclockwise, when seen from the imaginary boundary face.</figcaption>
+</figure>
+
+</div>
+
+<figure class="captioned_image fill_black float_right half_size">
+	<a class="open_img" href="/assets/images/03/mesh_construction/forbidden_case.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/forbidden_case.png" alt="" />
+	</a>
+  <figcaption>Forbidden case: The central vertex is already used by two faces, that are not connected by another face. When we want to add a new face that is not connected to one of the existing faces, we can't decide if it should be inserted at the top (A) or bottom (B).</figcaption>
+</figure>
+
+<p>Because our mesh implementation doesn’t know about the position of vertices, we need to enforce one additional restriction on valid topologies: If multiple unconnected faces share a vertex, a new face can only be added to that vertex, if it shares an edge with one of the faces. The problem we solve with this restriction is, that we need to know the order of the faces around a vertex, in order to be able to insert the edges at the correct positions in their new edge-rings. This ambiguity could<sup class="footnote" onclick="showFootnote(this)" title="and normaly is">[3]</sup> also be resolved by comparing the positions of the connected vertices. But with this small restriction we buy use the possibility to ignore the vertex positions completely here and look at on the topology only in terms of which vertices/faces are connected, without knowing how they will be laid out in space.</p>
+
+<p>Thanks to our restrictions we only have to handle 8 different cases in total. One for each of the three quad-edges of the new face, that could either be missing or already exist. Luckily most of these are rotationally symmetrical and we only need to look at 4 distinct cases, that we can identify by counting the number of already existing edges.</p>
+
+<h3 id="case-0-no-preexisting-edges">Case 0: No Preexisting Edges</h3>
+
+<p>The simplest case – and also the first one we need when we construct a new mesh – is the situation where we don’t have any faces or edges. All we need to do in this case is create one face and three quad-edges and connect them as shown below<sup class="footnote" onclick="showFootnote(this)" title="Technically it's also possible to create multiple unconnected faces, that are later connected by additional faces. As long as we don't violate the restriction above and all faces are connected before any traversal operation is used, that accesses the boundary edge. Because in that case we would have multiple edge-rings for the same face (the boundary face), which violates the precondition of the traversal operations.">[4]</sup>:</p>
+
+<div class="image_list">
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_0_primal.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_0_primal.png" alt="" />
+	</a>
+  <figcaption>Primal: One edge-ring around each of the three vertices.</figcaption>
+</figure>
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_0_dual.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_0_dual.png" alt="" />
+	</a>
+  <figcaption>Dual: One edge-ring around the new face and one around the boundary edge.</figcaption>
+</figure>
+
+</div>
+
+<h3 id="case-1-one-preexisting-edge-two-new-edges">Case 1: One Preexisting Edge (two new Edges)</h3>
+
+<figure class="captioned_image fill_black float_right">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_1_blank.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_1_blank.png" alt="" />
+	</a>
+  <figcaption></figcaption>
+</figure>
+
+<p>The next case is a bit more complex: One of our edges already exists. What that means is that we add our face onto another face, which with we share a single edge.</p>
+
+<p>The complexity here comes from the fact that we need to insert our new edges into existing edge-rings. To be exact the complex part is finding the correct edge-ring and insert position, i.e. the edge that should be directly in front of us in the ring. In contrast, the insertion itself is relatively easy<sup class="footnote" onclick="showFootnote(this)" title="The code below expects primal edges, but the code for dual edges would function identical. ">[5]</sup>:</p>
+
+<p><br style="clear:both" /></p>
+
+<pre><code class="language-cpp">void insert_after(Edge predecessor, Edge new_edge) {
+	// Find the edge that currently comes after the predecessor,
+	auto&amp; predecessor_next = primal_edge_next_[predecessor.index()];
+	
+	// ... set that as our next edge and
+	primal_edge_next_[new_edge.index()] = predecessor_next;
+	
+	// ... change the predecessor, so that it points to us
+	predecessor_next = new_edge;
+}
+</code></pre>
+
+<p>It’s a relatively common case, that we know our successor but not our predecessor. If that is the case, we can just use <code>origin_prev(e)</code> to get its predecessor and insert ourselves between them. One thing we need to keep in mind though, is that the traversal operations won’t work as expected if we already modified part of the topology. So the usual procedure is that we load and remember all information about the current topology that we will need and only modify it afterwards, whereby we achieve a consistent view of the topology.</p>
+
+<pre><code class="language-cpp">void insert_before(Edge successor, Edge new_edge) {
+	insert_after(successor.origin_prev(*this), new_edge);
+}
+</code></pre>
+
+<div class="image_list">
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_1_primal.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_1_primal.png" alt="" />
+	</a>
+  <figcaption>Primal: The right vertex is identical to the simple case, but the other two edges need to be inserted into the existing edge-ring by calling <code class="highlighter-rouge">insert_before()</code> with <code class="highlighter-rouge">e1,e2</code> and <code class="highlighter-rouge">e3,e4</code>.</figcaption>
+</figure>
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_1_dual.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_1_dual.png" alt="" />
+	</a>
+  <figcaption>Dual: The edge-ring around the new face is identical to the simple case but the boundary edge-ring is more complicated here. Before we inserted our new face, the shared edge was a boundary edge and <code class="highlighter-rouge">e1</code> was part of the boundary edge-ring. After the insertion that is no longer the case and <code class="highlighter-rouge">e2</code> and <code class="highlighter-rouge">e3</code> should be part of this edge-ring instead. So we have to retrieve the predecessor of <code class="highlighter-rouge">e1</code>, let it point to <code class="highlighter-rouge">e2</code>, which points to <code class="highlighter-rouge">e3</code>, which finally points to the original successor of <code class="highlighter-rouge">e1</code>.</figcaption>
+</figure>
+
+</div>
+
+<h3 id="case-2-two-preexisting-edges-one-new-edge">Case 2: Two Preexisting Edges (one new Edge)</h3>
+
+<figure class="captioned_image fill_black float_right">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_2_blank.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_2_blank.png" alt="" />
+	</a>
+  <figcaption></figcaption>
+</figure>
+
+<p>This case is quite similar to the previous one, but slightly simpler because we only have one newly created quad-edge that we need to connect. Thereby the primal edge ring around one of the vertices is already correct and the other two only need to insert the new edge. Wiring up the dual edges is the only part with a bit of complexity, but that case is also quite similar to case 1.</p>
+
+<p><br style="clear:both" /></p>
+
+<div class="image_list">
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_2_primal.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_2_primal.png" alt="" />
+	</a>
+  <figcaption>Primal: The edge-ring around the bottom right vertex is already complete and doesn't need to be modified. The only thing we need to do here is insert our new edges into the ring around the remaining two vertices. Which can be done in the same way as in the previous case.</figcaption>
+</figure>
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/insert_2_dual.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/insert_2_dual.png" alt="" />
+	</a>
+  <figcaption>Dual: Like in the last case we have to remove the out-going edges of the new face from the boundary-ring and replace it with the new edge. The difference is that we now remove two edges (<code class="highlighter-rouge">e1</code> and <code class="highlighter-rouge">e2</code>) and replace them with a single new edge (<code class="highlighter-rouge">e3</code>).</figcaption>
+</figure>
+
+</div>
+
+<h3 id="case-3-three-preexisting-edges">Case 3: Three Preexisting Edges</h3>
+
+<p>The opposite of Case 1 is also not too complex: All three vertices of our face are already connected by edges and we currently have a hole where we want to create the face. Because all connections are already established in this case, we don’t have to connect any edge, but just create a new face and set the origin of the dual edges leaving the face accordingly<sup class="footnote" onclick="showFootnote(this)" title="and possibly remove them from the boundary edge-ring, if they don't already form a distinct ring ">[6]</sup>.</p>
+
+<h3 id="the-edge-case7">The Edge-Case<sup class="footnote" onclick="showFootnote(this)" title="It's never so simple... ">[7]</sup></h3>
+
+<p>We owe the simplicity of the previous cases primarily to one assumption: If a vertex already has a face we also share an edge with this face.</p>
+
+<figure class="captioned_image fill_black float_right">
+	<a class="open_img" href="/assets/images/03/mesh_construction/special_case_blank.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/special_case_blank.png" alt="" />
+	</a>
+  <figcaption>Special-Case: New face between two previously unconnected faces</figcaption>
+</figure>
+
+<p>But that assumption doesn’t hold in all cases. While our restriction from the beginning does forbid all cases where a vertex is shared by more than two unconnected faces, it leaves one case open that we still need to handle: A vertex that is shared by exactly two faces. We could’ve excluded that case too, of course. But in contrast to the others it is actually decidable and by not allowing it we would restrict the construction of meshes more than I’d like. Because without this case all new faces after the first one, would have to share an edge with an existing face.</p>
+
+<p>The reason that we’ve ignored this cases until now is that we can actually separate these concerns by splitting our function in two steps:</p>
+<ol>
+  <li>Add the face like above, ignoring this special case</li>
+  <li>Iterate over each affected vertex and fix the errors introduced by ignoring the edge case 1.</li>
+</ol>
+
+<p>The specific errors that are introduced by 1. are unconnected edge-rings<sup class="footnote" onclick="showFootnote(this)" title="multiple disjunct sets of edges, that each form an independent edge-ring">[8]</sup>, which would cause massive problems during traversal, because we would only see one of them when we iterate with <code>origin_next(e)</code>. Luckily we can solve this problem relatively easily by merging the two edge-rings:</p>
+
+<pre><code class="language-cpp">void merge_edge_ring(Edge last_edge_of_a, Edge last_edge_of_b) {
+	auto&amp; a_next = primal_edge_next_[last_edge_of_a.index()];
+	auto&amp; b_next = primal_edge_next_[last_edge_of_b.index()];
+	
+	std::swap(a_next, b_next);
+	// Now last_edge_of_a points to the first edge in b
+	//  and last_edge_of_b points to the first edge in a
+}
+</code></pre>
+
+<p><br style="clear:both" /></p>
+
+<div class="image_list">
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/special_case_primal.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/special_case_primal.png" alt="" />
+	</a>
+  <figcaption>Primal: Next-Pointers after first step in orange and changes in red. To merge the two rings we need to find the last edge of the new (<code class="highlighter-rouge">e1</code>) and old edge-ring (<code class="highlighter-rouge">e2</code>). To do that here, we can just iterate over all edges of the respective ring, looking for the first edge that has not left face.</figcaption>
+</figure>
+
+  <figure class="captioned_image fill_black">
+	<a class="open_img" href="/assets/images/03/mesh_construction/special_case_dual.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/03/mesh_construction/special_case_dual.png" alt="" />
+	</a>
+  <figcaption>Dual: Next-Pointers after first step in cyan and changes in red. The two edges we need for the merge operation can be determined by iterating the edge-rings, looking for one were the connecting vertex is on the left side. Or we can find them by traversing the mesh after we've found the two edges for the primal merge-operation.</figcaption>
+</figure>
+
+</div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Now that we have our first world mesh, we can nearly start with the generation algorithms, like simulating plate tectonics. We’re just missing one last puzzle piece, we’ll look at next, that is the modification of our mesh during the simulation.</p>
+
+:ET
