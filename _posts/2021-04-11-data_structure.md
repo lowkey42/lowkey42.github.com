@@ -56,12 +56,12 @@ This might look like a lot of information, but as we will see most of it is redu
 </div>
 
 The information above describes the complete topology of our mesh, which we can access using the following basic operations:
-- `rot(e)`: Gives us the next edge in a quad-edge. As each quad-edge consists of four edges, the result of the fourth rotation is our initial edge, again.
-- `sym(e)`: Gives us the edge that points in the opposite direction. So it's the same as rotating the edge twice.
 - `origin(e)`: Gives us the origin of an edge (either a vertex in the primal or a face in the dual mesh).
 - `dest(e)`: Gives us the destination of an edge.
 - `left(e)`: Gives us the face/vertex on the left side of the edge.
 - `right(e)`: Gives us the face/vertex on the right side of the edge.
+- `rot(e)`: Gives us the next edge in a quad-edge. As each quad-edge consists of four edges, the result of the fourth rotation is our initial edge, again.
+- `sym(e)`: Gives us the edge that points in the opposite direction. So it's the same as rotating the edge twice.
 - `origin_next(e)`: Gives us the next edge when rotating counterclockwise around the origin of an edge. Like `rot(e)` this will loop back on itself after we have visited every outgoing edge from the origin.
 
 We can also combine these into more complex operations to traverse the mesh:

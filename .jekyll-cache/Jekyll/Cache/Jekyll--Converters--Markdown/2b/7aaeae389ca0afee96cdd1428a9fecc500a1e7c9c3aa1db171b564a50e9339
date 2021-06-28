@@ -1,0 +1,74 @@
+I"<<p>TODO: intro/requirements/goals</p>
+
+<p>Basis:</p>
+<figure class="captioned_image fill_white">
+	<a class="open_img" href="/assets/images/Procedural Tectonic Planets.gif" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/Procedural Tectonic Planets.gif" alt="" />
+	</a>
+  <figcaption><a href="https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf">Procedural Tectonic Planets by Cortial et al.</a> is a paper from 2019 that TODO TODO TODO</figcaption>
+</figure>
+
+<p>TODO: this post: differences to paper, used model and outline of algorithm steps</p>
+
+<!--more-->
+
+<p>TODO: main differences:</p>
+<ul>
+  <li>How plates are modeled: polygons vs. sets of interconnected points</li>
+  <li>How collision boundaries are handled: instantanious vs. simulated over time</li>
+  <li>Simulation of movement: no information in paper =&gt; infinitly small points with constant mass for sub-plates + verlet integration</li>
+</ul>
+
+<h1 id="model">Model</h1>
+
+<p>TODO: delaunay triangulation; vertices = sub-plates; each vertex with its own elevation, type and velocity, but belonging to a meta-plate, identified by an id; through triangulation each vertex is connected to its closest neighbors</p>
+
+<p>TODO: Simulation: similar to spring-damper-modell</p>
+<ul>
+  <li>each vertex is an infinitly small point-mass</li>
+  <li>edges between vertices apply forces to their origin and destination; types of forces depend on id, type and velocity of the two affected vertices
+    <ul>
+      <li>e.g. two vertices belonging to the same plate have a damped spring that determines the applied force between them, to keep the distance close to the initial one</li>
+      <li>can be visualized as interconnected springs stretched over a sphere</li>
+    </ul>
+  </li>
+  <li>collisions are handled through:
+    <ul>
+      <li>detection of invalid triangles, e.g. inverted triangles =&gt; removal</li>
+      <li>calculation of separating velocity =&gt; subduction, rifting or collision boundary =&gt; modify elevation</li>
+    </ul>
+  </li>
+  <li>since vertices are constantly in motion
+    <ul>
+      <li>delaunay condition needs to be restored after every update</li>
+      <li>new vertices are inserted at oceanic ridges</li>
+      <li>edges are split collapsed to keep the mesh within therten parameters (max vertex density)</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="simulation">Simulation</h1>
+
+<p>TODO: general idea</p>
+
+<p>TODO:
+Steps:</p>
+<ol>
+  <li>Refinement</li>
+  <li>identify type of boundaries between sub-plates =&gt; remember in edge-layer</li>
+  <li>spawn new plates on ridge-boundaries</li>
+  <li>Calculate forces acting on plates</li>
+  <li>Simulate plate movement: Update plate velocity and move them (re-normalize to plate surface)</li>
+  <li>Update elevation at subduction and collision boundaries</li>
+  <li>Check if there accoured collisions between plates during movement and resolve them</li>
+  <li>Restore Delaunay condition</li>
+  <li>Fix degenerated triangles. e.g. triangles that are extremly thin or have an extremly small height (=&gt; vertices are nearly colliding)</li>
+  <li>Restore Delaunay condition (again)</li>
+  <li>Apply simple erosion</li>
+  <li>Split/Combine plates</li>
+</ol>
+
+<h1 id="conclusion">Conclusion</h1>
+<p>Next =&gt; Initial State</p>
+
+:ET

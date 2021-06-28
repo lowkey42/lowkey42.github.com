@@ -1,0 +1,18 @@
+I"0<p>TOOD: intro</p>
+
+<!--more-->
+
+<p>TODO</p>
+
+<ol>
+  <li>Refinement</li>
+  <li>spawn new plates on ridge-boundaries</li>
+  <li>Check if there accoured collisions between plates during movement and resolve them</li>
+  <li>Restore Delaunay condition</li>
+  <li>Fix degenerated triangles. e.g. triangles that are extremly thin or have an extremly small height (=&gt; vertices are nearly colliding)</li>
+  <li>Restore Delaunay condition (again)</li>
+</ol>
+
+<h1 id="conclusion">Conclusion</h1>
+<p>Next =&gt; large-scale interaction (splitting/mergin) of plates</p>
+:ET
