@@ -491,6 +491,14 @@ blockquote {
 	margin-top: 0.5em;
 }
 
+.captioned_image.full_width {
+	width: 100%;
+}
+
+.captioned_image.full_width > .open_img {
+	width: 100%;
+}
+
 .captioned_image.float_right {
 	float: right;
 	clear: both;
@@ -562,6 +570,25 @@ blockquote {
     object-position: center;
     border-radius: 0.5em;
 }
+
+.captioned_image.fixed_height_small {
+	width: 16em;
+}
+.captioned_image.fixed_height_small figcaption {
+	font-size: 70%;
+	line-height: 1.2;
+	margin-top: 0.5em;
+    margin-left: 1.5em;
+}
+.fixed_height_small > .open_img {
+    height: 8em;
+	width: 16em;
+}
+.fixed_height_small > .open_img > img {
+    height: 8em;
+	width: 16em;
+}
+
 
 .fixed_height > .open_img {
     height: 20em;

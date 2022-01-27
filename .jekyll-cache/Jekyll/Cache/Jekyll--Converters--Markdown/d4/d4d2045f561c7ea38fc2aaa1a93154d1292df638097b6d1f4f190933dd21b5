@@ -1,0 +1,247 @@
+I"m|<p><img src="/assets/images/05/spongebob-many-months-later.gif" style="width:20em" /></p>
+
+<p>Well, that was a bit of a longer pause, than I had hoped. So much for my “best intentions of documenting my progress”…</p>
+
+<p>But I’ve finally managed to implement a working prove-of-concept for the plate simulation to generate terrain, also it’s still a bit rough around the edges.</p>
+
+<figure class="captioned_image full_width">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="" autoplay="">
+		<source src="/assets/images/05/plate_simulation.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Plate simulation (5x speed-up), consisting of about 2'500 triangles</figcaption>
+</figure>
+
+<p>While there are still many problems that need more work<sup class="footnote" onclick="showFootnote(this)" title="i.a. continents loosing too much area during collisions, missing details on coastlines and oceanic ridges, no shallow/continental-plate oceans, weird looking elongates plates and unnatural looking splitting of large plates ">[1]</sup> the general approach seems to work.</p>
+
+<p>But one thing that I notice now is, that the current tooling to visualize the results is not enough to test and debug the algorithm. So, before I continue working on the algorithm itself, I’ve decided to refactor and improve the editor to better visualize the generated data and allow users to modify the intermediary results. But first, it’s probably a good idea to document how the current implementation of the plate simulation works<sup class="footnote" onclick="showFootnote(this)" title="before I forget how it works and would have to wrangle that knowledge from the code itself... ">[2]</sup>.</p>
+
+<!--more-->
+
+<p>The plate simulation in its current form is heavily based on the work of Cortial et al. in their 2019 paper <a href="https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf">Procedural Tectonic Planets</a>. However, there are some aspects where my implementation diverges. Either because the paper didn’t provide details about a specific part of their implementation or because I think it will fare better, with my specific goals in mind.</p>
+
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/01/Procedural Tectonic Planets.gif" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/01/Procedural Tectonic Planets.gif" alt="" />
+	</a>
+  <figcaption>Procedural Tectonic Planets</figcaption>
+</figure>
+
+<p>As the algorithm is relatively complex, I’ve split this post into multiple entries. In this one, we’ll look at how the tectonic plates are modelled and get an overview of the simulation on an abstract level and the following posts will then go into more detail about</p>
+<ul>
+  <li>The generation of the initial state (i.e., the planet and its plates we use as input for the simulation)</li>
+  <li>How plates are moved across the sphere’s surface and how that effects the elevation</li>
+  <li>How collisions and intersection between plates are resolved and when/how new crust is generated</li>
+  <li>When and how plates are merged or split (i.e <a href="https://en.wikipedia.org/wiki/Suture_(geology)">suturing</a> and <a href="https://en.wikipedia.org/wiki/Rift">rifting</a>)</li>
+</ul>
+
+<h2 id="enough-plate-tectonics-to-be-dangerous-interesting">Enough plate tectonics to be <del>dangerous</del> interesting</h2>
+
+<p>But first, let’s recap what I want to achieve with the plate simulation. The main focus of this step is to generate high-level terrain features, that look as realistic as possible<sup class="footnote" onclick="showFootnote(this)" title="i.e. mountain ranges near (former) plate-boundaries, matching terrain on previously connected continents and in general, a distribution of landmasses that is more or less similar to earths ">[3]</sup>, at a resolution ~1000 km² per data-point. Of course, for any practical use-case, as well as the more interesting features like rivers, we’ll need a much higher resolution. My hope is that (similar to <a href="https://undiscoveredworlds.blogspot.com">Undiscovered Worlds</a>) I will be able to later generate a more detailed small-scale view, based on the output of this high-level simulation.</p>
+
+<p>To achieve these realistic results, I planned to stray as little as possible into the fun and easy, but unpredictable and boring world of random noise. Instead, I wanted to try to stay as close as reasonably possible to the physical reality<sup class="footnote" onclick="showFootnote(this)" title="At least as far as my limited understanding of it allows">[4]</sup>. The problem with that is that plate tectonics is actually a quite complex 3D problem<sup class="footnote" onclick="showFootnote(this)" title="who would have thought?">[5]</sup> and <em>a bit difficult</em> to observe at the time-scales I’m interested in. So, I obviously can’t really hope to accurately simulate even a couple of years of plate movement on my target hardware, much less the millions of years I’ll need.</p>
+
+<p>Luckily, I only really want to fool humans. So, the algorithm doesn’t have to be perfect, but only <em>slightly</em> more capable than the average observer and (as others have already demonstrated) I should be able to ignore a surprising amount of the more complicated aspects and only focus on some of the more obvious high-level features.</p>
+
+<h3 id="plate-interactions-and-the-wilson-cycle">Plate-Interactions and the Wilson Cycle</h3>
+
+<p>The one thing I definitely can’t avoid to model are the tectonic plates themself. So first, I should probably summarize what I understand about the physical processes, before I explain how I simplified them for my model<sup class="footnote" onclick="showFootnote(this)" title="As my knowledge about this topic is still anything but profound, these explanations should definitely be taken with more than a grain of salt. ">[6]</sup>.</p>
+
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/05/Plate_tectonics_map.gif" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/Plate_tectonics_map.gif" alt="" />
+	</a>
+  <figcaption>Tectonic activity map of the Earth<sup><a href="https://en.wikipedia.org/wiki/File:Plate_tectonics_map.gif">[source]</a></sup></figcaption>
+</figure>
+
+<p>Tectonic plates are disjointed pieces of the Earth’s crust, that float on top of the mantel. Their movement is driven by convection currents in the upper mantle, that are in-turn influenced by the properties and interactions of the plates above. A common misconception<sup class="footnote" onclick="showFootnote(this)" title="or at least one I had">[7]</sup> is imagining the plates as solid ridged stone slabs, that float on top of liquid magma. Also, this a nice simple visualization, it’s important for their interactions to understand that both the crust and the mantel are actually closer to solids. It is only over these long geological time-scales that the mantle behaves similar to a high-viscosity fluid. But over these time-scales, the crust also exhibits less rigid and more elastic properties, which enables some of the deformations we observe.</p>
+
+<p>A nice simple model, that nonetheless contains all the high-level aspects I’m interested in, is the Wilson Cycle. The model describes the formation and breakup of supercontinents as a series of stages:</p>
+<figure class="captioned_image float_right">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="" autoplay="">
+		<source src="/assets/images/05/wilson_cycle.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Visualization of the Wilson Cycle<sup><a href="https://www.youtube.com/watch?v=I_q3sAcuzIY">[source]</a></sup></figcaption>
+</figure>
+
+<p>One essential factor in this model is the density of the crust that makes up the tectonic plate. While their composition is again quite complex, the crust can be classified into two general types: Continental crust that has a relatively high density and makes up most of the landmass and oceanic crust that has a comparatively high density and makes up most of the ocean floor. Because the crust floats on top of the mantle, its density not only determines “how high” it floats, but also how it behaves when it gets thicker or thinner and how it reacts to collisions with other plates.</p>
+
+<p>It’s important to note here, that this distinction is not as cut and dry as one might hope. Instead, it’s more of a categorization, based on the density of the average composition of the crust in an area. Which means, while there are some plates that consist mostly of continental/oceanic crust, most plates consist of both (as can be seen on the map above). And It’s also not uncommon for oceanic crust to <a href="https://en.wikipedia.org/wiki/Ophiolite">end up on dry land</a>, as well as for continental crust to <a href="https://en.wikipedia.org/wiki/Continental_shelf">be part of an ocean</a>. But to keep the following descriptions as concise as possible, I’ll use the terms “continental plate” to describe a plate that mostly consists of low-density material in the relevant area and “oceanic crust” for high-density.</p>
+
+<p>Considering all this, there are five types of interactions between plates:</p>
+
+<div class="image_list">
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_transform.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_transform.svg" alt="" />
+	</a>
+  <figcaption><b>Transform boundary</b>: Two plates moving past each other<sup><a href="https://commons.wikimedia.org/wiki/File:Continental-continental_conservative_plate_boundary_opposite_directions.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_divergent.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_divergent.svg" alt="" />
+	</a>
+  <figcaption><b>Divergent boundary</b>: Two plates moving away from each other<sup><a href="https://commons.wikimedia.org/wiki/File:Continental-continental_constructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_convergent_cc.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_convergent_cc.svg" alt="" />
+	</a>
+  <figcaption><b>Convergent boundary (CC)</b>: Two continental plates colliding with each other <sup><a href="https://commons.wikimedia.org/wiki/File:Continental-continental_destructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_convergent_co.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_convergent_co.svg" alt="" />
+	</a>
+  <figcaption><b>Convergent boundary (CO)</b>: An oceanic and a continental plate colliding with each other<sup><a href="https://commons.wikimedia.org/wiki/File:Oceanic-continental_destructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_convergent_oo.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_convergent_oo.svg" alt="" />
+	</a>
+  <figcaption><b>Convergent boundary (OO)</b>: Two oceanic plates colliding with each other<sup><a href="https://commons.wikimedia.org/wiki/File:Oceanic-oceanic_destructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+</div>
+
+<p>Transform boundaries mostly just cause earthquakes, and are therefore not really of interest to us. So, we only have to look at convergent and divergent boundaries.</p>
+
+<p>Divergent boundaries are relatively simple. The two plates move apart and once they have moved sufficiently far apart, a new ocean begins to form between them.</p>
+
+<p>The most interesting boundaries are the convergent once, which we have to further distinguish into three subtypes based on the density/type of the involved crust:</p>
+<ul>
+  <li>Continental-Oceanic (CO): The type of boundary we’ve seen in the animation above. Here the denser oceanic plate is subducted under the continental plate, forming a trench between them, and starts to sink into the mantel. Once the subduction started, the weight of the already subducted plate also pulls on the remaining part, further speeding up the process. As the water subducted with the plate lowers the melting-point of the mantle material, it begins to melt, causing magma to rise and a volcanic mountain range to form<sup class="footnote" onclick="showFootnote(this)" title="Volcanos like these are also where most of the new continental crust forms. Because the minerals that make it up, not only have a lower density but also a lower melting point, which means they tend to solidify last and such closer to the surface. ">[8]</sup>.</li>
+  <li>Oceanic-Oceanic (OO): Quite similar to CO boundaries, except that the two plates are much more similar in density. But the principle remains the same, meaning the higher-density plate subducts, which will usually be the older of the two. This type of collision forms deep oceanic trenches and island arcs.</li>
+  <li>Continental-Continental (CC): In contrast to the other two, there is no significant subduction here because both plates are too low-density to sink into the mantel, and are instead uplifted to create large mountains like the Himalayas.</li>
+</ul>
+
+<p>Another interesting aspect, that is currently not implemented, is the formation of mid-plate volcanos, like the one that formed the Hawaiian islands. These are not caused by plate interactions but are instead thought to be fed by hotspots in the mantle. Hence, they are mostly stationary and cause island arcs to form, when the crust above them moves.</p>
+
+<h3 id="discretization-of-space">Discretization of Space</h3>
+<p>The most obvious simplification in my model is that I’m using an extremely course discretization of the simulated space. In this step I only really care about the rough shape of tectonic plates and large mountains, that don’t require much in terms of resolution.</p>
+
+<p>As I’ve already outlined in the previous blog posts, I’m modelling my planet as a triangle mesh with data stored on the vertices, faces and edges, instead of a more structured grid. This allows for a dynamic adjustment of the resolution in interesting (i.e. especially active) areas, without having to store detailed data about large stretches of empty boring ocean.</p>
+
+<p>The simulation above consist of about 2’500 triangles and 1’300 Vertices, that are more or less evenly distributed on the surface (510’064’471 km²), which gives us a resolution of about 400’000 km² per Vertex.</p>
+
+<p>One of the next steps will be to improve the subdivision algorithm, so I’ll end up with about 1’000’00 km² in mostly empty/flat areas and 10’000 km² - 100’000 km² near the coastline and mountains.</p>
+
+<h3 id="reduced-dimensionality">Reduced Dimensionality</h3>
+
+<p>There is one more way we can reduce the space we need to simulate: reduce the number of dimensions</p>
+
+<p>While actual plate tectonics is a complex 3D problem – with complicated fluid dynamics and the <a href="https://en.wikipedia.org/wiki/Isostasy">isostatic equilibrium</a> determining how plates interact and how high/low pieces of crust float – in this simplified model we can ignore most of this and only focus on the position of the plates on the surface and their elevation.</p>
+
+<p><br /></p>
+
+<figure class="captioned_image float_right">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/sphere_plate_directions.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Visualization of the tectonic plates, consisting of multiple sub-plates, each with their own velocity, type, and elevation</figcaption>
+</figure>
+
+<p>To summarize, the planet is modelled as a triangle mesh<sup class="footnote" onclick="showFootnote(this)" title="encoded with the quad-edge structure discussed previously">[9]</sup> where each vertex describes the properties of the crust in the surrounding area. To form tectonic plates, multiple connected vertices are grouped together by assigning them an integer ID. Or put another way, the vertices describe sub-plates, that are part of a larger tectonic plate.</p>
+
+<p>So, each vertex stores the following information:</p>
+<ul>
+  <li>The ID of the plate it belongs to</li>
+  <li>Its elevation, i.e. the average elevation of this area’s crust (negative for areas below sea level)</li>
+  <li>If it contains (mostly) continental or oceanic crust</li>
+  <li>Its velocity</li>
+  <li>When the crust formed, i.e. how old it is</li>
+</ul>
+
+<p>Since each vertex is connected by an edge to its nearest neighbors, forming a Delaunay triangulation, we can inspect this mesh to detect collisions, traverse the plates and store additional information required for the simulation on its edges.</p>
+
+<p>This is also one of the major differences to the work of Cortial et al., since they appear to store each plate as an individual spherical triangulation of points, instead of one coherent mesh. While keeping the plates as separate triangualtions would simplify some parts of the algorithm (collision detection/resolution) my hope is that a single coherent mesh will make it easier to reuse the structure for both other simulations (water-shed, weather patterns, …) and rendering.</p>
+
+<h2 id="simulation">Simulation</h2>
+
+<p>On the simplest level, all we are doing to simulate plate tectonics is moving vertices around on the sphere’s surface and handle collisions by adding/removing vertices, changing the topology or modifying their elevation.</p>
+
+<p>The movement itself is extremely simple. Since the vertices already know their position and velocity, all we need to do is apply the well-known equations of motion to calculate their new position on each time-step with: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mrow><mi>n</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>x</mi><mi>n</mi></msub><mo>+</mo><msub><mi>v</mi><mi>n</mi></msub><mi>t</mi><mo>+</mo><msub><mi>a</mi><mi>n</mi></msub><msup><mi>t</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">x_{n+1} = x_n + v_n t + a_n t^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.638891em;vertical-align:-0.208331em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.73333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.76508em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.964108em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></p>
+
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/05/spring_model.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/spring_model.png" alt="" />
+	</a>
+  <figcaption>Some vertices belonging to different plates (green/blue), as well as their velocities, connections and a visualization of the forces that affect them: Orange spring-damper systems between vertices of the same plate and red force-generators between different plates, that pull/push vertices based on more complicated rules.</figcaption>
+</figure>
+
+<p>The interesting part is how we determine the vertices (i.e. sub-plates) accelerations <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">a_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. This is the second part where we deviate from the work of Cortial et al., in part because of our different data model. Since all vertices are part of the same Delaunay triangulation, we can make the simplifying assumption that a vertex is only significantly affected by its direct neighbors, without introducing too many noticable errors. Hence, we can use the same general system to calculate both the interaction between sub-plates belonging to the same tectonic plate, as well as interactions between different plates.</p>
+
+<p>This system can be thought of as similar to a spring-damping model based soft-body simulation. The vertices are treated as a point masses and each edge applies a force on its origin and destination based on their properties and the type of boundary the edge represents:</p>
+<ul>
+  <li>Both vertices belong to the same plate: The force is calculated by a damped spring, that causes the plates to retain their initial distance but allows for some deformations.</li>
+  <li>Divergent boundary: A small <a href="https://en.wikipedia.org/wiki/Ridge_push">ridge-push</a> force is applied, that moves the vertices further apart.</li>
+  <li>Convergent boundary (CC): A force, proportinal to the velocity along the convergence direction and the distance between the plates, is applied to resist the collision until the plates either separate or are sutured.</li>
+  <li>Convergent boundary (OC or OO): The denser of the to sub-plates is slowly subducted under the the other and a force is applied to the subducting plate to simulate the <a href="https://en.wikipedia.org/wiki/Slab_pull">slab pull</a></li>
+</ul>
+
+<p>Apart from the plate movement itself, there are also some other steps we need to take care of, that will be the focus of the next posts:</p>
+<ul>
+  <li>The elevation of each sub-plate is updated near convergent and divergent plate boundaries, based on their separating velocities.<sup class="footnote" onclick="showFootnote(this)" title="In the future I would also like to test a more generalised system, that redistributes elevation from all neighboring sub-plates based on changes in their distance. This would not just simplify the elevation calculations but also allow us to model things like folding of plates further from the plates boundary. But during inital testing this appeared to be too chaotic. So I stayed closer to the original paper for the initial implementation. ">[10]</sup></li>
+</ul>
+
+<p>TODO: would normaly be unstable because we have too few springs to prevent shearing and bending; works here because the mesh is restricted to the surface of a sphere, which limits its movement enough to prevent artefacts, as long as the simulation doesn’t cause self intersections</p>
+
+<p>TODO: general idea</p>
+
+<p>TODO:</p>
+<ul>
+  <li>collisions are handled through:
+    <ul>
+      <li>detection of invalid triangles, e.g. inverted triangles =&gt; removal</li>
+      <li>calculation of separating velocity =&gt; subduction, rifting or collision boundary =&gt; modify elevation</li>
+    </ul>
+  </li>
+  <li>since vertices are constantly in motion
+    <ul>
+      <li>delaunay condition needs to be restored after every update</li>
+      <li>new vertices are inserted at oceanic ridges</li>
+      <li>edges are split collapsed to keep the mesh within therten parameters (max vertex density)</li>
+    </ul>
+  </li>
+</ul>
+
+<p><br /></p>
+
+<p>After this high-level overview, here are the detailed steps each iteration of the simulation goes through, which the next couple of posts will look at in more detail:</p>
+
+<ol>
+  <li>Refinement: Add vertices where more details are needed and remove vertices unessential ones</li>
+  <li>Identify boundary types: Compare the properties of neighboring sub-plates to determine if they belong to the same tectonic plate or fall into one of the boundary zones discussed above (transform, divergent, convergent CC/OC/OO)</li>
+  <li>Create new oceanic crust at divergent boundaries</li>
+  <li>Calculate all forces acting on the sub-plates</li>
+  <li>Simulate plate movement: Calculate the acceleration of all sub-plates, based on the forces acting on them, and utilize Verlet integration to calculate their new velocities and positions</li>
+  <li>Update each sub-plate’s elevation, if they are part of a subduction or collision zone</li>
+  <li>Check for collisions and resolve them <sup class="footnote" onclick="showFootnote(this)" title="As I'll show in a later post, this is another point of difference because collisions are not handled instantaneously but rather continuously over multiple time-steps, which allows for more nuanced behavior. ">[11]</sup></li>
+  <li>Check and restore Delaunay condition by rotating faces, if required <sup class="footnote" onclick="showFootnote(this)" title="This step also searches for triangles whose height is much smaller or larger than their base and tries to normalize them, because triangles like this could negatively impact the simulation over time.">[12]</sup></li>
+  <li>Apply erosion</li>
+  <li>Combine colliding continental plates and split plates that have gotten too large</li>
+</ol>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>To summarize, the algorithm is heavily based on the 2019 paper <a href="https://hal.archives-ouvertes.fr/hal-02136820/file/2019-Procedural-Tectonic-Planets.pdf">Procedural Tectonic Planets</a> by Cortial et al., with the following minor modifications:</p>
+
+<ul>
+  <li>The plates are not modelled as individual triangulation, but instead the complete planet forms a coherent triangle mesh, whose topology is continuously updated during the simulation. My hope here is that this will be more suitable for later simulations and allow for an easier integration with other parts of the system, even though it sadly makes the actual plate simulation a bit more difficult.</li>
+  <li>Since the paper’s focus are the interactions between plates, the implementation of the movement itself was sadly not describes in any detail. Because of this and enabled by the different triangulation approach, I’ve chosen to model the plate’s movement similar to a particle-based soft-body simulation. This should also allow for more plastic behavior and interesting deformations of plates during collisions.</li>
+  <li>The last difference, that I’ll discuss in one of the following posts, is that collisions between plates are handled differently. Instead of resolving collisions immediately when they are detected, the different representation allows us to derive stresses at plate boundaries and ongoing collision and thus solve collisions over multiple iterations, which should (hopefully) generate more natural-looking results.</li>
+</ul>
+
+<p>That should be about it for this high-level overview of the plate simulation. And in the next post we’ll look in more detail at how the initial planet is generated, before the actual simulation starts.</p>
+
+:ET
