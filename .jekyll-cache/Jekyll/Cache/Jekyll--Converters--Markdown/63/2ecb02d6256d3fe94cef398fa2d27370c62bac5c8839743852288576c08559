@@ -1,0 +1,14 @@
+I"ú<p>TOOD: intro (why what we need and why we need it)</p>
+
+<!--more-->
+
+<p>TODO: previous approach = copy-on-write data-structure for layers that is copied after every modification</p>
+
+<p>TODO: nice and simple for compicated operations like the simulation steps =&gt; heavy overkill for simple things like changing the elevation of a single vertex</p>
+
+<p>TODO: Command-Pattern</p>
+
+<p>TODO: Combination of COW-structure and commands =&gt; new undo/redo system</p>
+
+<p>TODO: plan for new timeline view</p>
+:ET

@@ -1,0 +1,18 @@
+I"L<p>TOOD: intro (work on the editor, refactoring, …) =&gt; picking</p>
+
+<!--more-->
+
+<p>TODO: “normal aproach” (ray from camera, maybe with depthbuffer-sampling and intersection on cpu)</p>
+
+<p>TODO: why that doesn’t work: many faces/vertices, projections heavily distort geometry and might not be easily reversable</p>
+
+<p>TODO: solution: GPU picking =&gt; render pass that writes buffer of Vertex-IDs; each pixel writes the IDs of its three vertices (uniquly identifies the triangle face); also sorted from closest to furthest =&gt; first vertex = selected + other two allows us to find the closest edge</p>
+
+<p>TODO: techical stuff
+	render pass that only renders the NxN pixels around the cursor
+	async retrival to dont starve the gpu
+	shaders
+	calcuation face/vertex/edge from the vertex-IDs</p>
+
+<p>TODO: demo gif = picking.mp4</p>
+:ET

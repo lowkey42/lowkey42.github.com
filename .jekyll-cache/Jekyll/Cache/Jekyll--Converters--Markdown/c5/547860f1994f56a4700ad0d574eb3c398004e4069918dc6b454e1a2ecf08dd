@@ -1,0 +1,229 @@
+I"9<p>The first aspect we will have to take a look at, is how we can generate our starting point, i.e. the initial state before the simulation is run.</p>
+
+<p>We’ve already discussed the first halve of that in a <a href="/2021/05/02/world_creation">previous post</a>, where we’ve generated a simple triangle mesh of a sphere. So I’ll first recap the most important part of that and than dive into how we can populate that mesh with the information we need for the actual simulation, like plate-IDs, plate-velocities and elevations.</p>
+
+<!--more-->
+
+<h2 id="creating-the-mesh">Creating the mesh</h2>
+
+<figure class="captioned_image float_right">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="" autoplay="">
+		<source src="/assets/images/03/sphere_points.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>(A) Uniformly distributed points (Fibonacci Sphere)</figcaption>
+</figure>
+
+<p style="height:12em; display: table-cell; vertical-align: middle;">
+To recap, what we need is a set of random points, that are uniformly distrubted on the surface of a sphere, where each point represents part of a tectonic plate. To generate uniformly distributed point<sup class="footnote" onclick="showFootnote(this)" title="i.e. no obvious poles, patterns or other concentrations of points in certain areas. ">[1]</sup> we utilize the golden angle to create a Fibonacci Sphere, by placing points walking downwards from one of the poles and rotating <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>π</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>2</mn><mo>−</mo><mi>ϕ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2\pi \cdot (2-\phi)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ϕ</span><span class="mclose">)</span></span></span></span> radians <sup class="footnote" onclick="showFootnote(this)" title="= approx. 137.507... degrees">[2]</sup> each step (image A).
+</p>
+<p><br style="clear:both" /></p>
+
+<figure class="captioned_image float_right">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="" autoplay="">
+		<source src="/assets/images/03/sphere_shaded.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>(B) Shaded triangulation of these points</figcaption>
+</figure>
+
+<p style="height:12em; display: table-cell; vertical-align: middle;">
+Once we have a set of points, the next step is to generate a triangle mesh from them. There are many possible ways to triangulate a set of points, but the one we’ll use is the delaunay triangulation, because it avoids long thin triangles, that could be problematic during the simulation, and also because its dual-mesh is the voronoi diagram of the mesh, which we’ll utalize for other parts of the simulation. While there are more efficient algorithms to generate a delaunay triangulation of a set of points, since our points all lay on the surface of a sphere, the easist approach is to generate the convex hull of the points (using the QuickHull algorithm), which in this case coinsides with the delaunay triangulation of the points (image B).
+</p>
+<p><br style="clear:both" /></p>
+
+<figure class="captioned_image float_right">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="" autoplay="">
+		<source src="/assets/images/03/sphere_noise.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>(C) Shaded triangulation, with more vertices and a small random perturbation</figcaption>
+</figure>
+
+<p style="height:12em; display: table-cell; vertical-align: middle;">
+The algorithm described above distributes the points completly uniformly. But for a more natural look it’s actually preferable to sacrafice some uniformity to achive a less predictable structure.
+
+Luckily, all that’s required to achive this, is to offset each point by a random amount (image C). And as long as that offset is smaller than our step-size, the points are still guarenteed to be far enough apart.
+
+</p>
+<p><br style="clear:both" /></p>
+
+<p>This gives use the following code to generate our mesh:</p>
+
+<pre><code class="language-cpp">// Define the data layer that contains the vertex positions in 3D Cartesian coordinates
+constexpr auto position_info = Layer_info&lt;Vec3, Layer_type::vertex&gt;("position");
+
+// Acquire all necessary resources from the world structure
+auto mesh        = world.lock_mesh();
+auto [positions] = world.lock_layer(position_info);
+auto rand        = world.lock_random();
+
+// Create N vertices
+mesh-&gt;add_vertices(vertex_count);
+
+// Pre-calculate the golden angle and the step-size for calculating y,
+//   so we just need to multiply them with i in the loop
+constexpr auto golden_angle = 2.f * std::numbers::pi_v&lt;float&gt; * (2.f - std::numbers::phi_v&lt;float&gt;);
+const auto     step_size    = 2.f / (vertices - 1);
+
+for(std::int32_t i = 0; i &lt; vertices; i++) {
+	const auto offset = perturbation &gt; 0 ? rand-&gt;uniform(0.f, perturbation) : 0.f;
+	auto       ii    = std::min(i + offset, vertices - 1.f);
+
+	// Calculate the x/y/z position of the current vertex on the unit sphere
+	const auto y     = 1.f - step_size * ii;
+	const auto r     = std::sqrt(1 - y * y);
+	const auto theta = golden_angle * ii;
+	const auto x     = std::cos(theta) * r;
+	const auto z     = std::sin(theta) * r;
+
+	// Set the vertex position (multiplying with the radius of our sphere)
+	positions[Vertex(i)] = Vec3{x, y, z} * radius;
+}
+
+// triangulate the generated points
+auto  qh      = quickhull::QuickHull&lt;float&gt;{};
+auto  hull    = qh.getConvexHull(&amp;positions.begin()-&gt;x, positions.size(), false, true);
+auto&amp; indices = hull.getIndexBuffer();
+
+for(std::size_t i = 0; i &lt; indices.size(); i += 3) {
+	mesh-&gt;add_face(indices[i], indices[i+1], indices[i+2]);
+}
+</code></pre>
+
+<h2 id="generating-the-initial-tectonic-plates">Generating the initial tectonic plates</h2>
+
+<p>Besides the mesh itself, there are also a couple of values the simulation uses, that we need to initalize to create the intial set of tectonic plates. As already mentioned, these values are attached to the meshes vertices to describe the properties of the area around the vertex and are defined as follows in the code:</p>
+
+<pre><code class="language-cpp">enum class Crust_type : int8_t { none, oceanic, continental };
+
+// position of the vertex in space (initalized by the process above)
+constexpr auto layer_position   = Layer_info&lt;Vec3,       Layer_type::vertex&gt;("position");
+// integer ID of the plate the vertex belongs to
+constexpr auto layer_plate_id   = Layer_info&lt;int32_t,    Layer_type::vertex&gt;("plate_id");
+// dominant type of the crust in this area
+constexpr auto layer_plate_type = Layer_info&lt;Plate_type, Layer_type::vertex&gt;("crust_type");
+// velocity of this piece of crust
+constexpr auto layer_velocity   = Layer_info&lt;Vec3,       Layer_type::vertex&gt;("velocity");
+// height of this piece of crust above/below the (arbitrary) sea level
+constexpr auto layer_elevation  = Layer_info&lt;float,      Layer_type::vertex&gt;("elevation");
+// the timstamp at which the crust has formed
+constexpr auto layer_created    = Layer_info&lt;float,      Layer_type::vertex&gt;("crust_created");
+</code></pre>
+
+<p>The process of generating the values itself is actually incredibly simple. First we pick <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> random vertices as seed-points to create <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi></mrow><annotation encoding="application/x-tex">N</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> tectonic plates, assign them each a random elevation/velocity/… and finally use a flood-fill type algorithm to grow them in all direction until all vertices are assigned to a plate.</p>
+
+<h3 id="initalize-seed-vertices">Initalize Seed Vertices</h3>
+
+<p>First we’ll need to pick a couple of random points that will be the seeds from ehich we then grow our tectonic plates.</p>
+
+<p>TODO: loop N-times; try to find a random vertex that hasn’t been assigned yet (retry a number of times and then give up); each vertex gets a unique integer ID; first X plates are oceanic, rest is continental; remaining properties are assigned random values in the confirued range</p>
+
+<pre><code class="language-cpp">const auto count       = rand-&gt;uniform(plates_min, plates_max);
+const auto ocean_count = static_cast&lt;int&gt;(std::floor(count * ocean_prop));
+		
+auto next_id       = std::int32_t(1);
+auto open_vertices = std::vector&lt;Vertex&gt;();
+open_vertices.reserve(static_cast&lt;std::size_t&gt;(count) * 10u);
+
+for(auto i = 0; i &lt; count; i++) {
+	// try to find a free vertex to use as a seed point
+	if(auto seed_vertex = random_vertex(mesh, rng, [&amp;ids = ids](auto v) { return ids[v] == 0; })) {
+		const auto ocean = i &lt; ocean_count; // first X plates are oceanic, rest is continental
+		
+		ids[*seed_vertex]   = next_id++;
+		types[*seed_vertex] = ocean ? Crust_type::oceanic : Crust_type::continental;
+		// assign other properties based on crust type
+		// ...
+
+		// remember the seed vertices, so we can use them for the flood-fill
+		open_vertices.emplace_back(*seed_vertex);
+	}
+}
+</code></pre>
+
+<p>TODO: Velocity is the only property that’s a bit more complex to construct; needs to be a 3D vector, that is perpendicular to the surface normal and points in a random direction =&gt; Random Angle and Speed =&gt; normalized position of vertex to get surface normal, construct orthonormal system based on that normal (direction of tangent/bitangent is irrelevant, because the direction itself is random) =&gt; use that that transform the 2D vector defined by the angle into that new system =&gt; random 3D vector</p>
+
+<pre><code class="language-cpp">const auto angle        = rng.uniform(0.2f, 2.f * 3.141f);
+const auto speed        = rng.uniform(0.01f, 1.f) * (ocean ? max_ocean_speed : max_continent_speed);
+const auto normal       = normalized(positions[*seed_vertex]);
+const auto tangent      = cross(normal, Vec3(-normal.z, normal.x, normal.y));
+const auto bitangent    = cross(normal, tangent);
+velocities[*seed_vertex] = (tangent * std::sin(angle) + bitangent * std::cos(angle)) * speed;
+</code></pre>
+
+<h3 id="flood-fill">Flood Fill</h3>
+
+<p>TODO: Flood Fill: 
+    1. For each vertex that we just assigned to a plate: Add neighbors to the same plate (if its still not assigned)
+        - Id/Type are copied
+        - Copy elevation and creation time, but disturb it slightly
+        - Velocity is modified to be tangential to surface normal
+    2. Randomly shuffle the list of vertices that were modified in this iteration and goto step 1, until no vertices have been modified</p>
+
+<pre><code class="language-cpp">Vec3 normalized_velocity(const Vec3&amp; position, const Vec3&amp; velocity) {
+	constexpr auto dt = 100.f;
+	
+	auto next_position = position + velocity * dt;                     // move position one step with given velocity
+	next_position      = normalized(next_position) * length(position); // normalize new position back to sphere surface
+	return (next_position - position) / dt;                            // calculate actual velocity
+}
+</code></pre>
+
+<pre><code class="language-cpp">auto new_opened_vertices = std::vector&lt;Vertex&gt;();
+new_opened_vertices.reserve(open_vertices.size());
+
+// iterate until the last iteration didn't contain any new, formally unassigned, vertices
+while(!open_vertices.empty()) {
+	for(auto&amp; seed : open_vertices) {
+		for(Vertex n : v.neighbors(mesh)) {
+			if(types[n] == Crust_type::none) {
+				ids[n]           = ids[seed];
+				types[n]         = types[seed];
+				velocities[n]    = normalized_velocity(positions[n], velocities[seed]);
+				elevations[n]    = elevations[seed] + /* ... */;
+				created_times[n] = created_times[seed] + /* ... */;
+
+				// remember as starting point for next iteration of outer loop
+				new_opened_vertices.emplace_back(n);
+			}
+		}
+	}
+
+	// iterate again with the new points, but in a random order
+	rng.shuffle(new_opened_vertices);
+	std::swap(new_opened_vertices, open_vertices);
+	new_opened_vertices.clear();
+}
+</code></pre>
+
+<div class="image_list">
+
+  <figure class="captioned_image fixed_height">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/06/sphere_plates.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>The generated planet, with the area around each vertex highlighted in the plates color. Shades of blue for oceanic sub-plates and shades green for continental ones</figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/06/sphere_plate_directions.webm" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>The generated planet with arrows indicating each sub-plates movement direction</figcaption>
+</figure>
+
+</div>
+
+<p><br /></p>
+
+<p>With that out of the way, in the following posts we’ll look into the simulation algorithm, that iterates from this inital state to generate our terrain.</p>
+
+:ET

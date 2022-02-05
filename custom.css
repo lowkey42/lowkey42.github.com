@@ -588,6 +588,12 @@ blockquote {
     height: 8em;
 	width: 16em;
 }
+.fixed_height_small.square > .open_img {
+    height: 16em;
+}
+.fixed_height_small.square > .open_img > img {
+    height: 16em;
+}
 
 
 .fixed_height > .open_img {
