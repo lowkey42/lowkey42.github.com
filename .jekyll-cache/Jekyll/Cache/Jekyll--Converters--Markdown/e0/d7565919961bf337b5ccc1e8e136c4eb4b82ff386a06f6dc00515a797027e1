@@ -1,4 +1,4 @@
-I"<p><img src="/assets/images/05/spongebob-many-months-later.gif" style="width:20em" /></p>
+I"T�<p><img src="/assets/images/05/spongebob-many-months-later.gif" style="width:20em" /></p>
 
 <p>Well, that was a bit of a longer pause, than I had hoped. So much for my “best intentions of documenting my progress”…</p>
 
@@ -176,12 +176,12 @@
 	<a class="open_img" href="/assets/images/05/spring_model.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
 		<img style="float:none; max-height:20em" src="/assets/images/05/spring_model.png" alt="" />
 	</a>
-  <figcaption>Some vertices belonging to different plates (green/blue), as well as their velocities, connections and a visualization of the forces that affect them: Orange spring-damper systems between vertices of the same plate and red force-generators between different plates, that pull/push vertices based on more complicated rules.</figcaption>
+  <figcaption>Some vertices belonging to different plates (green/blue), as well as their velocities, connections and a visualization of some of the forces that affect them: Orange spring-damper systems between vertices of the same plate and red force-generators between different plates, that pull/push vertices based on more complicated rules.</figcaption>
 </figure>
 
 <p>The interesting part is how we determine the vertices (i.e. sub-plates) accelerations <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mi>n</mi></msub></mrow><annotation encoding="application/x-tex">a_n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. This is the second part where we deviate from the work of Cortial et al., in part because of our different data model. Since all vertices are part of the same Delaunay triangulation, we can make the simplifying assumption that a vertex is only significantly affected by its direct neighbors, without introducing too many noticeable errors. Hence, we can use the same general system to calculate both the interaction between sub-plates belonging to the same tectonic plate and interactions between different plates.</p>
 
-<p>This system can be thought of as similar to a spring-damping model based soft-body simulation. The vertices are treated as a point masses, and each edge applies a force on its origin and destination based on their properties and the type of boundary the edge represents:</p>
+<p>This system can be thought of as similar to a spring-damping model based soft-body simulation. The vertices are treated as a point masses, and each edge applies a force on its origin and destination based on its properties and the type of boundary the edge represents:</p>
 <ul>
   <li>Both vertices belong to the same plate: The force is calculated by a damped spring, that causes the plates to retain their initial distance but allows for some deformations.</li>
   <li>Divergent boundary: A small <a href="https://en.wikipedia.org/wiki/Ridge_push">ridge-push</a> force is applied, that moves the vertices further apart.</li>
@@ -189,15 +189,22 @@
   <li>Convergent boundary (OC or OO): The denser of the two sub-plates is slowly subducted under the other and a force is applied to the subducting plate to simulate the <a href="https://en.wikipedia.org/wiki/Slab_pull">slab pull</a></li>
 </ul>
 
+<figure class="captioned_image float_right">
+	<a class="open_img" href="/assets/images/05/spring_model_dual.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/spring_model_dual.png" alt="" />
+	</a>
+  <figcaption>Forces are not just modelled based on the primal edges (grey lines), but also for their duals (dashed white line), which connect the faces and the left/right of the primal edge. But in this case, they are modelled as springs which connect the left and right vertices.</figcaption>
+</figure>
+
+<p>It should be noted that that model outlined here would not work for soft-body simulations, in the general case. Because we rely exclusively on the triangle edges to calculate forces, we are missing many springs that should normally be present in such a system, to prevent shearing and bending. However, in our case we avoid such artifacts because the individual vertices are (a) constrained to the sphere’s surface, (b) cover the whole sphere and we (c) prevent self-intersections and non-manifold geometry. This effectively limits the simulation to 2D, also the surface itself is a 3D sphere, and doesn’t allow for bending, folding or significant shearing, which would otherwise occur. However, using just the edges of the primal mesh is not sufficient because of another reason: During the simulation the mesh is continuously updated, which includes flipping edges. Since this effectively removes springs, which are potentially under compression/tension, from the model and adds new ones, between formally unconnected vertices, that would be in a relaxed state, this would create artifacts like heavy deformation of continents or loss of land area<sup class="footnote" onclick="showFootnote(this)" title="Which is definitely not something I noticed just now while writing this.">[10]</sup>. To solve this, we don’t use only primal but also dual edges, which apply forces to the two vertices opposite of the corresponding primal edge (see image above). Because of this, when an edge is flipped, the spring-parameters can be swapped between the primal and dual edge, thereby conserving the spring’s stored energy and avoiding these kinds of artifacts.</p>
+
 <p>Apart from the plate movement itself, there are also some other steps we need to take care of, that will be the focus of the next posts:</p>
 <ul>
-  <li>The elevation of each sub-plate is updated near convergent and divergent plate boundaries, based on their separating velocities.<sup class="footnote" onclick="showFootnote(this)" title="In the future I would also like to test a more generalized system, that redistributes elevation from all neighboring sub-plates based on changes in their distance. This would not just simplify the elevation calculations, but also allow us to model things like folding of plates further from the plates' boundary. But during initial testing, this appeared to be too chaotic. So, I stayed closer to the original paper for the initial implementation. ">[10]</sup></li>
+  <li>The elevation of each sub-plate is updated near convergent and divergent plate boundaries, based on their separating velocities.<sup class="footnote" onclick="showFootnote(this)" title="In the future I would also like to test a more generalized system, that redistributes elevation from all neighboring sub-plates based on changes in their distance. This would not just simplify the elevation calculations, but also allow us to model things like folding of plates further from the plates' boundary. But during initial testing, this appeared to be too chaotic. So, I stayed closer to the original paper for the initial implementation. ">[11]</sup></li>
   <li>Moving the vertices sometimes causes self-intersections of the mesh, that need to be fixed by removing one of the vertices. Since all triangles are restricted to the sphere’s surface and have the same winding-order, these artifacts can be detected by checking if a face has been inverted, i.e. its normal points in the opposite direction than the sphere’s surface normal.</li>
   <li>The vertices’ movement might also cause the Delaunay condition to be violated for the new triangulation, which means we have to check and possibly restore it after each iteration. Since the number of violations is usually small, this is currently done by flipping edges that don’t pass the circumference-condition until the Delaunay triangulation is restored.</li>
   <li>And finally, there are steps that create/destroy vertices, either because of rifting/subduction or because an area needs more/less detail and thus vertices per km².</li>
 </ul>
-
-<p>It should be noted that that model outlined here would not work for soft-body simulations, in the general case. Because we rely exclusively on the triangle edges to calculate forces, we are missing many springs that should normally be present in such a system, to prevent shearing and bending. However, in our case we avoid such artifacts because the individual vertices are (a) constrained to the sphere’s surface, (b) cover the whole sphere and we (c) prevent self-intersections and non-manifold geometry. This effectively limits the simulation to 2D, also the surface itself is a 3D sphere, which doesn’t allow for bending, folding or significant shearing.</p>
 
 <p><br /></p>
 
@@ -210,9 +217,9 @@
   <li>Calculate all forces acting on the sub-plates</li>
   <li>Simulate plate movement: Calculate the acceleration of all sub-plates, based on the forces acting on them, and utilize Verlet integration to calculate their new velocities and positions</li>
   <li>Update each sub-plate’s elevation, if they are part of a subduction or collision zone</li>
-  <li>Check for collisions and resolve them <sup class="footnote" onclick="showFootnote(this)" title="As I'll show in a later post, this is another point of difference because collisions are not handled instantaneously but rather continuously over multiple time-steps, which allows for more nuanced behavior. ">[11]</sup></li>
-  <li>Check and restore Delaunay condition, if required <sup class="footnote" onclick="showFootnote(this)" title="This step also searches for triangles whose height is much smaller or larger than their base and tries to normalize them, because triangles like this could negatively impact the simulation over time.">[12]</sup></li>
-  <li>Apply erosion</li>
+  <li>Check for collisions and resolve them <sup class="footnote" onclick="showFootnote(this)" title="As I'll show in a later post, this is another point of difference because collisions are not handled instantaneously but rather continuously over multiple time-steps, which allows for more nuanced behavior. ">[12]</sup></li>
+  <li>Check and restore Delaunay condition, if required <sup class="footnote" onclick="showFootnote(this)" title="This step also searches for triangles whose height is much smaller or larger than their base and tries to normalize them, because triangles like this could negatively impact the simulation over time.">[13]</sup></li>
+  <li>Simulate erosion</li>
   <li>Combine colliding continental plates and split plates that have gotten too large</li>
 </ol>
 

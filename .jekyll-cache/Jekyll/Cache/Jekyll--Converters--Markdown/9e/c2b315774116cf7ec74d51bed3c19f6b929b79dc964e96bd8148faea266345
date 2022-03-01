@@ -1,0 +1,28 @@
+I"�<p>Now that we have a way to generate some (albeit a bit dull) tectonic plates, we can implore an iterative algorithm that simulated plate movements and interactions, to generate more interesting details and (hopefully) realistic looking landforms. And how that algorithm roughly works, will be the next topic, that I’ve split into three parts:</p>
+
+<ul>
+  <li>How the plates are moved and how they interact with each other (this post)</li>
+  <li>How the mesh is updated when vertices moved, new crust is created on divergent boundaries or oceanic crust is subducted. And how collision detection works from a technical point of view</li>
+  <li>How large-scale plate interactions like rifting and suturing currently work</li>
+</ul>
+
+<!--more-->
+
+<h2 id="2-identify-boundary-types">2. Identify boundary-types</h2>
+<p>TODO: how plates interact is determined by by the type of the boundary between them =&gt; identify and store in edge-layer</p>
+
+<h2 id="4-calculate-all-forces-acting-on-the-sub-plates">4. Calculate all forces acting on the sub-plates</h2>
+<p>TODO: use boundary-type to calculate forces between vertices (spring-model, …)</p>
+
+<h2 id="5-simulate-movement">5. Simulate movement</h2>
+<p>TODO: verlet integeration and normalize back to surface (ignore inconsistencies/selfintersections for now =&gt; next post)</p>
+
+<h2 id="6-update-elevation">6. Update elevation</h2>
+<p>TODO: increase/decrease elevation based on boundary-type and movement</p>
+
+<h2 id="9-simulate-erosion">9. Simulate Erosion</h2>
+<p>TODO: extremly simple erosion model from paper as placeholder, to be replaced by later extensions</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>Next =&gt; handling collisions and changes in topology</p>
+:ET
