@@ -8,7 +8,7 @@ group: navigation
 {% include JB/setup %}
 
 <!-- This loops through the paginated posts -->
-{% for post in paginator.posts %}
+{% for post in site.posts reversed %}
   <h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
   <p class="author">
     <span class="date">{{ post.date | date_to_long_string }}</span>
@@ -19,7 +19,7 @@ group: navigation
   </div>
 {% endfor %}
 
-<!-- Pagination links -->
+<!-- Pagination links 
 <div class="pagination">
   {% if paginator.previous_page %}
     <a href="{{ paginator.previous_page_path }}" class="previous">Previous</a>
@@ -33,3 +33,4 @@ group: navigation
     <span class="next ">Next</span>
   {% endif %}
 </div>
+-->

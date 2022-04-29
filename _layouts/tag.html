@@ -6,7 +6,7 @@ layout: blog
 {% capture tag %}{{ page.title | slugify }}{% endcapture %}
 
 <!-- This loops through the paginated posts -->
-{% for post in site.posts %}
+{% for post in site.posts reversed %}
 {% if post.tags contains tag %}
   <h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
   <p class="author">

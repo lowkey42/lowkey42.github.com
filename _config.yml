@@ -27,11 +27,15 @@ author :
   github : lowkey42
   gitlab : lowkey42
 
-paginate: 15
 plugins:
-  - jekyll-paginate
+  - jekyll-paginate-v2
   - jekyll-seo-tag
-paginate_path: "/blog/page:num/"
+
+pagination:
+  enabled: true
+  per_page: 0
+  permalink: '/blog/:num/'
+  sort_reverse: false
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 

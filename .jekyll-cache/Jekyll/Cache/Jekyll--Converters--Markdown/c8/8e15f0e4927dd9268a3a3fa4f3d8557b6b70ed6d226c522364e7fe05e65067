@@ -1,0 +1,5 @@
+I"#<p>The first aspect we will have to take a closer look at, is how we can generate our starting point, i.e. the initial state before the simulation is run.</p>
+
+<p>We’ve already discussed the first half of that in a <a href="/2021/05/02/world_creation">previous post</a>, where we’ve generated a simple triangle mesh of a sphere. So, I’ll first recap the most important part of that and then dive into how we can populate that mesh with the information we need for the actual simulation, like plate-IDs, plate-velocities and elevations.</p>
+
+:ET

@@ -15,6 +15,8 @@ class FootnoteInlineTag < Liquid::Tag
     
     output =  "<sup class='footnote' onClick='showFootnote(this)' title=\""
     output += (@input).gsub(/"/,"&quot;")
+    output += "\" data-title=\""
+    output += (@input).gsub(/"/,"&quot;")
     output += "\">\["
     output += counter.to_s
     output += "\]</sup>"

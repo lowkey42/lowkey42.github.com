@@ -129,7 +129,7 @@ group: navigation
   </head>
   <body>
     <div id='site-header-bg' class='site-header-bg'></div>
-    <div class="layout layout_portfolio">
+    <div class="layout">
       {% include sections/header.html %}
       <div id='site-main' class='pure-g site-main'>
         <div id='site-container' class='pure-u-1 site-container'>
@@ -142,27 +142,82 @@ group: navigation
 <div class="portfolio_container" onclick="on_pf_entry_click(event, null)">
 <div class="portfolio">
 	
-	<section id="yggdrasill" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	<section id="ucpp_doc" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
-		<h2>Yggdrasill (2019 - Now)</h2>
-		<img width="500" height="280" src="preview_yggdrasill.jpeg" class="pf_preview"/>
+		<h2>UCPP DocGen (2021 - Now)</h2>
+		<a href="https://lowkey42.gitlab.io/ucpp_doc/#_CPPv416MY_opaque_handle" target="_blank" rel="noopener noreferrer">
+			<img width="500" height="280" src="preview_ucpp_doc.png" class="pf_preview"/>
+		</a>
 		<div>
-			<p class="pf_teaser">A library for the procedural generation of world maps.</p>
+			<p class="pf_teaser">A libClang based HTML documentation generator for modern C++ projects.</p>
 			<p class="pf_info_block">
 				<label>Links:</label> <span class="label_value">
-					<!-- <a class="pf_download_link" href="/tag/yggdrasill">Blog</a> -->
-					<a class="pf_download_link" href="https://proc_world_gen.gitlab.io/yggdrasill/">WebGL</a>,
-					<a class="pf_download_link" href="https://gitlab.com/proc_world_gen/yggdrasill">GitLab</a>
+					<a class="pf_download_link" href="https://lowkey42.gitlab.io/ucpp_doc/">Example</a>,
+					<a class="pf_download_link" href="https://gitlab.com/lowkey42/ucpp_doc">GitLab</a>
 				</span><br/>
 				<label>Team:</label> <span class="label_value">1 programmer</span><br/>
-				<label>Framework:</label> <span class="label_value">C++17, OpenGL ES, GLFW</span><br/>
+				<label>Framework:</label> <span class="label_value">C++20, Python, Sphinx, libClang</span><br/>
 			</p>
 			
-			<p>Yggdrasill is a library and toolkit for the procedural generation and visualization of game worlds that I'm currently working on (planing/ early prototyping phase).</p>
+			<p>A simple quick-and-dirty preprocessor that uses libClang to parse a C++ codebase to enrich RST files with API documentations and markup, which can be consumed by Sphinx to generate an HTML site.</p>
+			
+			<p>Features:
+				<ul>
+					<li>C++20 support on par with the current Clang release (including concepts)</li>
+					<li>Compact rendering of overload sets</li>
+					<li>Reference links for documented entities in <code>.. code-block::</code> directives</li>
+					<li>Extraction of marked function bodies as example code</li>
+					<li>Deduction of <code>auto</code> return types</li>
+					<li>Extraction of <code>requires</code> clauses</li>
+					<li>Human-readable formating of concept definitions</li>
+					<li>Generation of web links to STL types and other external libraries</li>
+					<li>Automatic detection of many higher level attributes for types (POD, Standard-Layout, Regular, Hashable ...)</li>
+					<li>Supports both reStructuredText and a subset of Doxygen commands in comments (as well as an unhealthy mix of both)</li>
+					<li>Custom CSS for the Furo Sphinx-Theme
+						<ul>
+							<li>Unifies the color scheme of example code blocks and documentation entries</li>
+							<li>Custom styling for attributes and requirements</li>
+							<li>More compact rendering of templates and admonitions</li>
+						</ul>
+					</li>
+				</ul>
+
+			</p>
 		</div>
 		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
 	</section>
 	
+	<section id="yggdrasill" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>Yggdrasill (2020 - Now)</h2>
+		<iframe width="500" height="280" src="https://www.youtube.com/embed/8rrOfKxk8Kk?enablejsapi=1&loop=1&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img width="500" height="280" src="preview_yggdrasill.png" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">A library for the procedural generation of planets.</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="/tag/yggdrasill">Blog</a>
+					<a class="pf_download_link" href="https://cranky-swartz-3250cb.netlify.app/">WebGL</a>,
+					<a class="pf_download_link" href="https://cranky-swartz-3250cb.netlify.app/windows.zip">Windows</a>,
+					<a class="pf_download_link" href="https://cranky-swartz-3250cb.netlify.app/linux.zip">Linux</a>,
+					<a class="pf_download_link" href="https://gitlab.com/yggdrasill_world_gen/yggdrasill">GitLab</a>
+				</span><br/>
+				<label>Team:</label> <span class="label_value">1 programmer</span><br/>
+				<label>Framework:</label> <span class="label_value">C++20, OpenGL ES, ImGui</span><br/>
+			</p>
+			
+			<p>Yggdrasill is a work-in-progress world generation toolkit, that currently consists of 4 main parts:
+				<ul>
+					<li>A low-level C-API, designed for easy portability and as a basis for high-level APIs written in other languages</li>
+					<li>A high-level C++-API</li>
+					<li>A number of modules that solve different aspects of the world-generation process</li>
+					<li>An interactive editor that utilizes these modules to generate worlds in real-time</li>
+				</ul>
+			</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+		
 	<section id="phase_shifter" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
 		<h2>PhaseShifter (2019)</h2>
@@ -187,17 +242,19 @@ group: navigation
 
 	<section id="mirrage" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
 	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
-		<h2>Mirrage (2017 - Now)</h2>
+		<h2>Mirrage (2017 - 2021)</h2>
 		<iframe width="500" height="280" src="https://www.youtube.com/embed/lRZGpQ0QQm0?enablejsapi=1&loop=1&playlist=gHHLuwjDiZo&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
 		<img width="500" height="280" src="preview_mirrage.jpeg" class="pf_preview"/>
 		<div>
 			<p class="pf_teaser">A Vulkan based 3D renderer and simple game engine featuring screen space global illumination.</p>
 			<p class="pf_info_block">
 				<label>Links:</label> <span class="label_value">
-					<a class="pf_download_link" href="https://gitlab.com/lowkey42/mirrage">GitLab</a>,
-					<a class="pf_download_link" href="/ssgi_thesis.pdf">Thesis</a>
+					<a class="pf_download_link" href="https://gitlab.com/lowkey42/mirrage">GitLab</a>,<br>
+					<a class="pf_download_link" href="/ssgi_thesis.pdf">Thesis about GI algorithm (german)</a>,<br>
+					<a class="pf_download_link" href="/mirrage_dual_quaternion_skinning.pdf">Thesis about Dual-Quaternion skinning (german)</a>,<br>
+					<a class="pf_download_link" href="/mirrage_tone_mapping.pdf">Thesis about local tone mapping operator (german)</a>
 				</span> <br/>
-				<label>Time frame:</label> <span class="label_value">2+ years</span><br/>
+				<label>Time frame:</label> <span class="label_value">4 years</span><br/>
 				<label>Team:</label> <span class="label_value">1 programmer</span><br/>
 				<label>Framework:</label> <span class="label_value">C++17, Vulkan, SDL2</span><br/>
 			</p>

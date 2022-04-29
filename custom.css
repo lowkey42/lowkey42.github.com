@@ -1,4 +1,10 @@
 
+@media print {
+	sup.footnote:after {
+		content:attr(data-title);
+	}
+}
+
 .container {
 	width: 80% !important;
 }

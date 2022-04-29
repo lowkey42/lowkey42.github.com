@@ -1,0 +1,230 @@
+I"�<div class="dual_column_container">
+  <div class="dual_column">
+
+    <p>Hi! My name is Florian Oetke. I’m a C++ programmer with a passion for engine architecture and game design. Currently, I am a CS student at Trier University of Applied Sciences.</p>
+
+    <p>My professional experience lies in enterprise application development (mostly search-engines and document analysis with JavaEE). I also dabbled a bit in game design but my main interest is game/engine/graphics programming and C++ in general.</p>
+
+    <p>I’ve worked on a couple of small to medium sized games as part of my semester/hobby/GameJam projects. Some of the more interesting ones I’ve listed <a href="/portfolio">here</a>. My biggest private project to date probably is my pet-engine <a href="/portfolio#mirrage">Mirrage</a>. I’ve started this project as a way to wrap my head around the Vulkan API. Over time – and (mostly) through my <a href="/ssgi_thesis.pdf">Bachelor’s thesis</a> – it evolved into an actual renderer. Ever since, it has grown through some semester and GameJam projects into a semi-usable game engine.</p>
+
+    <p>Fueled by some of my work in graphics programming and a passion for RPGs, I’ve also developed an interest in procedural content generation. The most interesting aspect to me is the potential of game world generation and interactive generation/adaption of stories. This let me to my newest playground-project <a href="/portfolio#yggdrasill">Yggdrasill</a>. This project is still in a pretty early stage, but my goal is to create a framework that can be used generate realistic world-maps based on physical simulations and artistic input.</p>
+
+    <p>If you would like to get in touch just send me an <a href="mailto:info@second-system.de">e-mail</a>, contact me through <a href="http://www.xing.com/profile/Florian_Oetke" rel="noopener noreferrer">Xing</a> or have a look at my projects on <a href="https://gitlab.com/lowkey42" rel="noopener noreferrer">GitLab</a> or <a href="https://github.com/lowkey42" rel="noopener noreferrer">GitHub</a>.</p>
+
+    <p><br /><br /></p>
+
+  </div>
+
+  <div class="dual_column" style="min-width:40em">
+
+    <h1 id="skills">Skills</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Languages</th>
+          <th> </th>
+          <th> </th>
+          <th> </th>
+          <th>Engine/ Libraries</th>
+          <th> </th>
+          <th> </th>
+          <th> </th>
+          <th>Tools</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>C++</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>OpenGL</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Git</td>
+        </tr>
+        <tr>
+          <td>GLSL</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Vulkan</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Clang / GCC / MinGW</td>
+        </tr>
+        <tr>
+          <td>CMake</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Unity</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Emscripten</td>
+        </tr>
+        <tr>
+          <td>Java</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>SDL2</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>CMake</td>
+        </tr>
+        <tr>
+          <td>C#</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>GLFW</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>MySQL / MariaDB</td>
+        </tr>
+        <tr>
+          <td>SQL</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>ImGui</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Tomcat</td>
+        </tr>
+        <tr>
+          <td>HTML5</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>GLM</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>RenderDoc</td>
+        </tr>
+        <tr>
+          <td>CSS</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Lucene / Solr</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Kdenlive (Video Editing)</td>
+        </tr>
+        <tr>
+          <td>LaTeX</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>JPA / Hibernate</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td>JavaScript</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Spring</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td>Python</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>libClang</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td>Bash</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>GSL</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Assimp</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Async++</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>PhysicsFS</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Doctest / Catch2</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td>Nuklear</td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+:ET

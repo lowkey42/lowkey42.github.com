@@ -14,7 +14,7 @@ My professional experience lies in enterprise application development (mostly se
 
 I've worked on a couple of small to medium sized games as part of my semester/hobby/GameJam projects. Some of the more interesting ones I've listed <a href="/portfolio">here</a>. My biggest private project to date probably is my pet-engine <a href="/portfolio#mirrage">Mirrage</a>. I've started this project as a way to wrap my head around the Vulkan API. Over time &ndash; and (mostly) through my <a href="/ssgi_thesis.pdf">Bachelor's thesis</a> &ndash; it evolved into an actual renderer. Ever since, it has grown through some semester and GameJam projects into a semi-usable game engine.
 
-Fueled by some of my work in graphics programming and a passion for RPGs, I've also developed an interest in procedural content generation. The most interesting aspect to me is the potential of game world generation and interactive generation/adaption of stories. This let me to my newest playground-project <a href="/portfolio#yggdrasill">Yggdrasill</a>. This project is still in an early planning/prototyping phase, but my goal is to attempt to generate realistic world-maps based on physical simulations and artistic input.
+Fueled by some of my work in graphics programming and a passion for RPGs, I've also developed an interest in procedural content generation. The most interesting aspect to me is the potential of game world generation and interactive generation/adaption of stories. This let me to my newest playground-project <a href="/portfolio#yggdrasill">Yggdrasill</a>. This project is still in a pretty early stage, but my goal is to create a framework that can be used generate realistic world-maps based on physical simulations and artistic input.
 
 If you would like to get in touch just send me an <a href="mailto:info@second-system.de">e-mail</a>, contact me through <a href="http://www.xing.com/profile/Florian_Oetke" rel="noopener noreferrer">Xing</a> or have a look at my projects on <a href="https://gitlab.com/lowkey42" rel="noopener noreferrer">GitLab</a> or <a href="https://github.com/lowkey42" rel="noopener noreferrer">GitHub</a>.
 
@@ -30,20 +30,21 @@ If you would like to get in touch just send me an <a href="mailto:info@second-sy
 | Languages	   | 	   | 	   | 	   | Engine/ Libraries |  |  |  | Tools |
 |--------------|-------------------|-------|--------------|--------------|--------------|--------------|--------------|--------------|
 | C++   |    |    |    | OpenGL |  |  |  | Git |
-| GLSL |  |  |  | Vulkan |  |  |  | Clang |
-| CMake |  |  |  | SDL2 |  |  |  | GCC / MinGW |
-| Java  	            |   	            |   	            |   	            | GLFW |  |  |  | Emscripten |
-| SQL |  |  |  | Unity |  |  |  | CMake |
-| C# |  |  |  | GLM |  |  |  | MySQL / MariaDB |
-| HTML5 |  |  |  | JPA / Hibernate |  |  |  | Tomcat |
-| CSS        |  |  |  | Spring |  |  |  | RenderDoc |
-| JavaScript |  |  |  | Lucene / Solr |  |  |  |  |
-| LaTeX |  |  |  | GSL |  |  |  |  |
-| Bash |  |  |  | Assimp |  |  |  |  |
-| Python |  |  |  | Async++ |  |  |  |  |
-|  |  |  |  | Doctest |  |  |  |  |
+| GLSL |  |  |  | Vulkan |  |  |  | Clang / GCC / MinGW |
+| CMake |  |  |  | Unity |  |  |  | Emscripten |
+| Java  	            |   	            |   	            |   	            | SDL2 |  |  |  | CMake |
+| C#         |  |  |  | GLFW |  |  |  | MySQL / MariaDB |
+| SQL |  |  |  | ImGui |  |  |  | Tomcat                   |
+| HTML5 |  |  |  | GLM |  |  |  | RenderDoc |
+| CSS        |  |  |  | Lucene / Solr |  |  |  | Kdenlive (Video Editing) |
+| LaTeX |  |  |  | JPA / Hibernate   |  |  |  |                          |
+| JavaScript |  |  |  | Spring |  |  |  |  |
+| Python     | | | | libClang | | | | |
+| Bash       |  |  |  | GSL |  |  |  |  |
+|            |  |  |  | Assimp |  |  |  |  |
+|  |  |  |  | Async++ |  |  |  |  |
 |  |  |  |  | PhysicsFS |  |  |  |  |
-|  |  |  |  | ImGui |  |  |  |  |
+|  |  |  |  | Doctest / Catch2 |  |  |  |  |
 |  |  |  |  | Nuklear |  |  |  |  |
 
 </div>
