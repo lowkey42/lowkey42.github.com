@@ -6,7 +6,7 @@ tags: [yggdrasill]
 excerpt_separator: <!--more-->
 ---
 
-As the end of my studies in nigh, I’m looking into possible topics for my master thesis. Alas, I've grown a bit tired of writing game engines and renderers lately -- who’d have thought. 
+As the end of my studies is nigh, I’m looking into possible topics for my master thesis. Alas, I've grown a bit tired of writing game engines and renderers lately -- who’d have thought. 
 
 Luckily, this quest for new ~~shores~~ topics was solved quickly. I've also developed quite an interest in procedural generation and always had a bit of a fascination for fantasy worlds and maps. So, I've decided to work on procedural world generation. 
 
