@@ -1,4 +1,4 @@
-I"��<p><img src="/assets/images/05/spongebob-many-months-later.gif" style="width:20em" /></p>
+I"��<p><img src="/assets/images/05/spongebob-many-months-later.gif" style="width:20em" /></p>
 
 <p>Well, that was a bit of a longer pause, than I had hoped. So much for my “best intentions of documenting my progress”…</p>
 
@@ -138,14 +138,14 @@
 
 <p>There is one more way we can reduce the space we need to simulate: reduce the number of dimensions</p>
 
-<p>While actual plate tectonics is a complex 3D problem – with complicated fluid dynamics and the <a href="https://en.wikipedia.org/wiki/Isostasy">isostatic equilibrium</a> determining how plates interact and how high/low pieces of crust “float” – in this simplified model we can ignore most of this and only focus on the position of the plates on the surface and their elevation.</p>
+<p>While actual plate tectonics is a complex 3D problem — with complicated fluid dynamics and the <a href="https://en.wikipedia.org/wiki/Isostasy">isostatic equilibrium</a> determining how plates interact and how high/low pieces of crust “float” — in this simplified model we can ignore most of this and only focus on the position of the plates on the surface and their elevation.</p>
 
 <p><br /></p>
 
 <figure class="captioned_image float_right">
 	<div class="open_img">
 	<video loop="" muted="" inline="" controls="">
-		<source src="/assets/images/sphere_plate_directions.webm" type="video/webm" />
+		<source src="/assets/images/06/sphere_plate_directions.webm" type="video/webm" />
 	</video>
 	</div>
   <figcaption>Visualization of the tectonic plates, consisting of multiple sub-plates, each with their own velocity, type, and elevation</figcaption>
@@ -233,7 +233,7 @@
 
 <ul>
   <li>The plates are not modelled as individual triangulation, but instead the complete planet forms a coherent triangle mesh, whose topology is continuously updated during the simulation. My hope here is that this will be more suitable for later simulations and allow for an easier integration with other parts of the system, even though it sadly makes the actual plate simulation a bit more difficult.</li>
-  <li>Since the paper’s focus is the interactions between plates, the implementation of the movement itself was sadly not describes in any detail. Because of this – and enabled by the different triangulation approach – I’ve chosen to model the plate’s movement similar to a particle-based soft-body simulation. This should also allow for more plastic behavior and interesting deformations of plates during collisions.</li>
+  <li>Since the paper’s focus is the interactions between plates, the implementation of the movement itself was sadly not describes in any detail. Because of this — and enabled by the different triangulation approach — I’ve chosen to model the plate’s movement similar to a particle-based soft-body simulation. This should also allow for more plastic behavior and interesting deformations of plates during collisions.</li>
   <li>The last difference, that I’ll discuss in one of the following posts, is that collisions between plates are handled differently. Instead of resolving collisions immediately when they are detected, the different representation allows us to derive stresses at plate boundaries and ongoing collision and thus solve collisions over multiple iterations, which should (hopefully) generate more natural-looking results.</li>
 </ul>
 

@@ -171,7 +171,7 @@ As can be seen in the following image, we can interpret the operations as each o
 	</a>
 <figcaption markdown="1">
 
-Executing <code class='highlighter-rouge'>split(e, 0.25f)</code> transforms the left mesh into the right one, inserting a new vertex -- 25% along the way between the origin and destination of e --, two faces (F<sub>L</sub> and F<sub>R</sub>) and three quad-edges.
+Executing <code class='highlighter-rouge'>split(e, 0.25f)</code> transforms the left mesh into the right one, inserting a new vertex --- 25% along the way between the origin and destination of e ---, two faces (F<sub>L</sub> and F<sub>R</sub>) and three quad-edges.
 
 Executing <code class='highlighter-rouge'>collapse(e', 1.f)</code> reverses this operation. The edge e' is removed and its origin and destination are collapsed into a single vertex, that keeps the position of the destination (100% along the way from origin to destination).
 
@@ -182,7 +182,7 @@ While the implementation is a bit more intricate because we have more edges to c
 
 ### Preconditions for `split()`
 
-The precondition of `split()` is quite simple -- simpler even than for `flip()` -- because it works on any edge with at least one face, which includes boundary edges. That is also the one special case we need to handle in the implementation: Are both faces present or are we splitting a boundary edge and the left/right face is missing.
+The precondition of `split()` is quite simple --- simpler even than for `flip()` --- because it works on any edge with at least one face, which includes boundary edges. That is also the one special case we need to handle in the implementation: Are both faces present or are we splitting a boundary edge and the left/right face is missing.
 
 ### Preconditions for `collapse()`
 
@@ -297,7 +297,7 @@ Of course, that begs the question of _what_ changes would be necessary. When we 
 
 ### Deletion and Modification
 
-The first -- and easier -- of these two covers the case when data is completely invalidated. Either because the part of the mesh that is referenced has been deleted or because the `origin()`/`dest()` of an edge changed. And the enum that describes the possible reactions is:
+The first (and easier) of these two covers the case when data is completely invalidated. Either because the part of the mesh that is referenced has been deleted or because the `origin()`/`dest()` of an edge changed. And the enum that describes the possible reactions is:
 ```cpp
 enum class On_mesh_change {
 	keep,            // The value is not changed
@@ -385,8 +385,8 @@ constexpr auto layer_distance = Layer_info<float, Layer_type::edge_primal>("plat
 ## Summary
 
 That should be all fundamentals we require for now, and our current architecture looks something like this:
-- We have a `Mesh` class that describes the topology of our generated world as a Delaunay triangulation, in terms of vertices, faces and edges -- i.e. a set of places and information about how they are connected -- and allows us to traverse and modify it
-- All the actual data is stored in `Layer` objects -- whose properties are defined in `Layer_info` structures -- that contain things like the position of our vertices, their elevation above sea level, their temperature, ...
+- We have a `Mesh` class that describes the topology of our generated world as a Delaunay triangulation, in terms of vertices, faces and edges --- i.e. a set of places and information about how they are connected --- and allows us to traverse and modify it
+- All the actual data is stored in `Layer` objects --- whose properties are defined in `Layer_info` structures --- that contain things like the position of our vertices, their elevation above sea level, their temperature, ...
 - Both of these are combined into a `World` class that manages them, e.g. resizes and modifies layers if the topology changes
 - The code that actually generates the world consists of independent modules that are sequentially invoked on the same `World` object to incrementally fill it with additional information and advance the simulation
 	- So, the only way for these modules to interact with each other is through layers or modifying the mesh itself

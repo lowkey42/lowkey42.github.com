@@ -8,7 +8,7 @@ excerpt_separateor: <!--more-->
 
 Before we can get started with the actual generation/<wbr>simulation algorithms we first need to decide how to store our data, i.e. how the world is represented in the data-model. Given that it's not clear what algorithms, we will use later and what their requirements will be, we'll want to choose an extendable model, that won't restrict our options later.
 
-There is however one decision we need to make right now, and that is what kind of shapes we want to support. As said in the previous post, I plan to focus on spherical worlds, seeing as the real world is (nearly) spherical{% note [citation needed]%} and I want to be able to directly compare it with my results. Since we are -- at least at the current scale -- only interested in the information on the surface of our world, this means that we need an efficient way to store information for points on the surface of a sphere.
+There is however one decision we need to make right now, and that is what kind of shapes we want to support. As said in the previous post, I plan to focus on spherical worlds, seeing as the real world is (nearly) spherical{% note [citation needed]%} and I want to be able to directly compare it with my results. Since we are --- at least at the current scale --- only interested in the information on the surface of our world, this means that we need an efficient way to store information for points on the surface of a sphere.
 
 <!--more-->
 
@@ -39,7 +39,7 @@ The dual mesh is especially interesting for us because the voronoi cells define 
 
 {% include image.html url="/assets/images/02/delauny_voronoi.png" classes="fill_black" description="A Delaunay triangulation (grey) of the vertices (red) and its dual, consisting of the circumcenters of the faces (blue) and connecting edges (cyan), forming the voronoi cells." %}
 
-Of these three concepts, the most important one for our quad-edge data structure is -- as the name suggest -- the edge. Our edges are _directed_, which means they know which vertex they are coming from, which one they are going to and which faces are on their left/right side. Thus, we need to store a total of four vertices for each pair of connected vertices, that form a quad-edge (see image below), to model the two possible directions of both the primal and dual mesh at that point.
+Of these three concepts, the most important one for our quad-edge data structure is --- as the name suggest --- the edge. Our edges are _directed_, which means they know which vertex they are coming from, which one they are going to and which faces are on their left/right side. Thus, we need to store a total of four vertices for each pair of connected vertices, that form a quad-edge (see image below), to model the two possible directions of both the primal and dual mesh at that point.
 
 Besides these pieces of information, we only need one other datum to describe the complete topology: Which edges start at a given vertex, i.e. the outgoing edges{% note This information is different for the dual mesh. For faces we don't store the outgoing dual-edges but the primal edges that rotate counterclockwise around this face. %}. And we store these as linked-lists of edges, where each edge knows the next edge around its origin, which is called an edge-ring.
 
@@ -282,7 +282,7 @@ The next steps are the `origin(e)`/`dest(e)`/... operations to get the surroundi
 	}
 ```
 
-Next are the functions to actually traverse the mesh. `origin_next(e)` is again quite simple -- determine the correct vector based on the type of the edge and load the corresponding next pointer -- but implementing all the others in-terms-of it is a bit more complex and perhaps needs a bit of visualization:
+Next are the functions to actually traverse the mesh. `origin_next(e)` is again quite simple --- determine the correct vector based on the type of the edge and load the corresponding next pointer --- but implementing all the others in-terms-of it is a bit more complex and perhaps needs a bit of visualization:
 
 ```cpp
 	Edge origin_next(const Mesh& mesh)const {
@@ -361,7 +361,7 @@ But because these operations are a bit more complicated and this post is already
 
 ## Positions, Elevations and other Additional Information
 
-However, there is one part we still have to talk about. Everything we have looked at so far is purely concerned with the topology -- which vertices/faces are connected to each other -- and isn't concerned about how it's actually laid out in space. That is, if it can be laid out without intersecting itself, it doesn't matter if our basic shape is a sphere, cube, plane or tesseract{% note which is quite neat, I think, and allows us a lot of flexibility in the future.%}.
+However, there is one part we still have to talk about. Everything we have looked at so far is purely concerned with the topology --- which vertices/faces are connected to each other --- and isn't concerned about how it's actually laid out in space. That is, if it can be laid out without intersecting itself, it doesn't matter if our basic shape is a sphere, cube, plane or tesseract{% note which is quite neat, I think, and allows us a lot of flexibility in the future.%}.
 
 But even if our data structure isn't concerned about the positions in space, we still do care about that for many applications and need a way to store them. We've already touched on the fact that we can use the IDs of our vertices/faces/edges to link them to additional information like elevation or temperature, and we will handle their positions in exactly the same way. Because our elements are laid out in a continuous vector in memory{% note While there might be some holes in our data, which we will discuss in the next post, there should never be more than a small percentage and we can ignore that for now.%} and our IDs are based on their position, we can also just use a vector for our addition data and use the IDs to index into them.
 
@@ -423,9 +423,9 @@ class World {
 };
 ```
 
-In contrast to the types we have seen previously, the `const` and non-`const` getters are rather different here and also have different names. Because a complete `World` will be a pretty large and complex object with many layers, it is not feasible to copy it often. But creating copies of the current state of a `World` will be required later to implement an undo/redo functionality in the editor. To solve this, the `World` class implements copy-on-write semantics for the objects it contains. That means when a `World` is copied it still references the data of the original and only when one of them is modified the affected data -- and only it -- is actually copied. But to track these modifications, we need a bit of machinery, provided here by the `..._lock` classes and `lock_...` methods. This recording of modifications will also allow us to check when the underlying data has been modified and for example cache the textures and vertex buffers used by the renderer.
+In contrast to the types we have seen previously, the `const` and non-`const` getters are rather different here and also have different names. Because a complete `World` will be a pretty large and complex object with many layers, it is not feasible to copy it often. But creating copies of the current state of a `World` will be required later to implement an undo/redo functionality in the editor. To solve this, the `World` class implements copy-on-write semantics for the objects it contains. That means when a `World` is copied it still references the data of the original and only when one of them is modified the affected data --- and only it --- is actually copied. But to track these modifications, we need a bit of machinery, provided here by the `..._lock` classes and `lock_...` methods. This recording of modifications will also allow us to check when the underlying data has been modified and for example cache the textures and vertex buffers used by the renderer.
 
-Besides the `mesh()` getter, the class also contains two getters for layers, one for simple unstructured layers -- that just have a name -- and one for our more complex mesh-based layers.{% note Both of the layer-getters return a pointer, because the layer might not exist, yet. But there is always a mesh, even though it might still be empty.%} The latter is again a template, which hopefully is not that surprising because our `Layer` was also a template. But the parameter of the method probably warrants some further explanation. Every layer has a name with which it's referenced in the procedural generation code, but it also has additional metadata linked to it:
+Besides the `mesh()` getter, the class also contains two getters for layers, one for simple unstructured layers --- that just have a name --- and one for our more complex mesh-based layers.{% note Both of the layer-getters return a pointer, because the layer might not exist, yet. But there is always a mesh, even though it might still be empty.%} The latter is again a template, which hopefully is not that surprising because our `Layer` was also a template. But the parameter of the method probably warrants some further explanation. Every layer has a name with which it's referenced in the procedural generation code, but it also has additional metadata linked to it:
 1. The type of the data that it stores (`T` template parameter in `Layer`)
 2. What its data is linked to in the mesh (`Layer_type`)
 1. The initial value of its data (used both when it's first created and when a new vertex is added to the mesh)

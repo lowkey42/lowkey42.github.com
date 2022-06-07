@@ -1,4 +1,4 @@
-I"\�<p>This will (hopefully) be the last post about geometry and the Mesh-API, before we can start with the actual generation algorithms.</p>
+I"V�<p>This will (hopefully) be the last post about geometry and the Mesh-API, before we can start with the actual generation algorithms.</p>
 
 <p>We’ve already defined a basic data structure for our geometry, implemented algorithms to traverse it and, in the last post, constructed a spherical Delaunay triangulation of random points, distributed evenly on a sphere.</p>
 
@@ -179,7 +179,7 @@ new_dual_origin_next.apply(primal_edge_next_);
 	</a>
 <figcaption>
 
-    <p>Executing <code class="highlighter-rouge">split(e, 0.25f)</code> transforms the left mesh into the right one, inserting a new vertex – 25% along the way between the origin and destination of e –, two faces (F<sub>L</sub> and F<sub>R</sub>) and three quad-edges.</p>
+    <p>Executing <code class="highlighter-rouge">split(e, 0.25f)</code> transforms the left mesh into the right one, inserting a new vertex — 25% along the way between the origin and destination of e —, two faces (F<sub>L</sub> and F<sub>R</sub>) and three quad-edges.</p>
 
     <p>Executing <code class="highlighter-rouge">collapse(e', 1.f)</code> reverses this operation. The edge e’ is removed and its origin and destination are collapsed into a single vertex, that keeps the position of the destination (100% along the way from origin to destination).</p>
 
@@ -190,7 +190,7 @@ new_dual_origin_next.apply(primal_edge_next_);
 
 <h3 id="preconditions-for-split">Preconditions for <code>split()</code></h3>
 
-<p>The precondition of <code>split()</code> is quite simple – simpler even than for <code>flip()</code> – because it works on any edge with at least one face, which includes boundary edges. That is also the one special case we need to handle in the implementation: Are both faces present or are we splitting a boundary edge and the left/right face is missing.</p>
+<p>The precondition of <code>split()</code> is quite simple — simpler even than for <code>flip()</code> — because it works on any edge with at least one face, which includes boundary edges. That is also the one special case we need to handle in the implementation: Are both faces present or are we splitting a boundary edge and the left/right face is missing.</p>
 
 <h3 id="preconditions-for-collapse">Preconditions for <code>collapse()</code></h3>
 
@@ -301,7 +301,7 @@ if(iter != origin_edges.end()) {
 
 <h3 id="deletion-and-modification">Deletion and Modification</h3>
 
-<p>The first – and easier – of these two covers the case when data is completely invalidated. Either because the part of the mesh that is referenced has been deleted or because the <code>origin()</code>/<code>dest()</code> of an edge changed. And the enum that describes the possible reactions is:</p>
+<p>The first (and easier) of these two covers the case when data is completely invalidated. Either because the part of the mesh that is referenced has been deleted or because the <code>origin()</code>/<code>dest()</code> of an edge changed. And the enum that describes the possible reactions is:</p>
 <pre><code class="language-cpp">enum class On_mesh_change {
 	keep,            // The value is not changed
 	reset_affected,  // The value is reset to its initial value (normally 0)
@@ -479,8 +479,8 @@ constexpr auto layer_distance = Layer_info&lt;float, Layer_type::edge_primal&gt;
 
 <p>That should be all fundamentals we require for now, and our current architecture looks something like this:</p>
 <ul>
-  <li>We have a <code>Mesh</code> class that describes the topology of our generated world as a Delaunay triangulation, in terms of vertices, faces and edges – i.e. a set of places and information about how they are connected – and allows us to traverse and modify it</li>
-  <li>All the actual data is stored in <code>Layer</code> objects – whose properties are defined in <code>Layer_info</code> structures – that contain things like the position of our vertices, their elevation above sea level, their temperature, …</li>
+  <li>We have a <code>Mesh</code> class that describes the topology of our generated world as a Delaunay triangulation, in terms of vertices, faces and edges — i.e. a set of places and information about how they are connected — and allows us to traverse and modify it</li>
+  <li>All the actual data is stored in <code>Layer</code> objects — whose properties are defined in <code>Layer_info</code> structures — that contain things like the position of our vertices, their elevation above sea level, their temperature, …</li>
   <li>Both of these are combined into a <code>World</code> class that manages them, e.g. resizes and modifies layers if the topology changes</li>
   <li>The code that actually generates the world consists of independent modules that are sequentially invoked on the same <code>World</code> object to incrementally fill it with additional information and advance the simulation
     <ul>
