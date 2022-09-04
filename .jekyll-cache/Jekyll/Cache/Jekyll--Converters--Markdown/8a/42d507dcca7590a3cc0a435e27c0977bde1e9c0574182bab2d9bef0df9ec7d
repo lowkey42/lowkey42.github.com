@@ -1,0 +1,11 @@
+I"ë<p>Now that we have a way to generate some (albeit a bit dull) tectonic plates, we can use an iterative algorithm that simulates plate movements and interactions, to refine it into (hopefully) realistic looking landforms.</p>
+
+<p>Because the simulation itself is relatively complex<sup class="footnote" onclick="showFootnote(this)" title="As can be deduced from the fact that it has taken me (another) eternity to finally write it down. " data-title="As can be deduced from the fact that it has taken me (another) eternity to finally write it down. ">[1]</sup>, Iâ€™ve split it into three separate posts:</p>
+
+<ul>
+  <li>Moving the plates and determining how they should interact with each other (this post)</li>
+  <li>Updating the mesh after vertices have been moved, which includes the creation and destruction of crust material on plate boundaries, as well as detecting and handling collisions between plates</li>
+  <li>Simulating large-scale plate interactions like rifting and suturing</li>
+</ul>
+
+:ET

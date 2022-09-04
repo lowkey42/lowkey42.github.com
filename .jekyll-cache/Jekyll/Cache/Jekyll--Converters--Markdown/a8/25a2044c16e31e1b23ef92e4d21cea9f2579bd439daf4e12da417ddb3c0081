@@ -1,9 +1,0 @@
-I"Þ<p>Now that we have a way to generate some (albeit a bit dull) tectonic plates, we can implore an iterative algorithm that simulated plate movements and interactions, to generate more interesting details and (hopefully) realistic looking landforms. And how that algorithm roughly works, will be the next topic, that Iâ€™ve split into three parts:</p>
-
-<ul>
-  <li>How the plates are moved and how they interact with each other (this post)</li>
-  <li>How the mesh is updated when vertices moved, new crust is created on divergent boundaries or oceanic crust is subducted. And how collision detection works from a technical point of view</li>
-  <li>How large-scale plate interactions like rifting and suturing currently work</li>
-</ul>
-
-:ET

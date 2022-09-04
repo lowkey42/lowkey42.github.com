@@ -545,6 +545,7 @@ blockquote {
 	margin: 0;
 	justify-content: space-evenly;
 	align-content: space-between;
+	align-items: center;
 }
 .image_list .captioned_image {
 	margin: 0 auto auto auto;
