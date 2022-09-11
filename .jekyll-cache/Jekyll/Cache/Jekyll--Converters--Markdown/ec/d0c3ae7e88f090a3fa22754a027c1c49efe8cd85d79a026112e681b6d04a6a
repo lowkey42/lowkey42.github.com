@@ -1,5 +1,5 @@
-I"�<div class="dual_column_container">
-  <div class="dual_column">
+I"�<div class="dual_column_container" style="min-width:40em">
+  <div class="dual_column" style="min-width:40em">
 
     <p>Hi! My name is Florian Oetke. I’m a C++ programmer with a passion for engine architecture and game design. Currently, I am a CS student at Trier University of Applied Sciences.</p>
 
@@ -15,7 +15,7 @@
 
   </div>
 
-  <div class="dual_column" style="min-width:40em">
+  <div class="dual_column" style="min-width:22em">
 
     <h1 id="skills">Skills</h1>
 
@@ -24,202 +24,124 @@
         <tr>
           <th>Languages</th>
           <th> </th>
-          <th> </th>
-          <th> </th>
-          <th>Engine/ Libraries</th>
-          <th> </th>
-          <th> </th>
-          <th> </th>
-          <th>Tools</th>
+          <th>Libraries / Tools</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>C++</td>
           <td> </td>
-          <td> </td>
-          <td> </td>
           <td>OpenGL</td>
-          <td> </td>
-          <td> </td>
+        </tr>
+        <tr>
+          <td>Java</td>
           <td> </td>
           <td>Git</td>
         </tr>
         <tr>
           <td>GLSL</td>
           <td> </td>
-          <td> </td>
-          <td> </td>
           <td>Vulkan</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Clang / GCC / MinGW</td>
-        </tr>
-        <tr>
-          <td>CMake</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Unity</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Emscripten</td>
-        </tr>
-        <tr>
-          <td>Java</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>SDL2</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>CMake</td>
         </tr>
         <tr>
           <td>C#</td>
           <td> </td>
+          <td>Unity</td>
+        </tr>
+        <tr>
+          <td>CMake</td>
           <td> </td>
-          <td> </td>
-          <td>GLFW</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>MySQL / MariaDB</td>
+          <td>ImGui</td>
         </tr>
         <tr>
           <td>SQL</td>
           <td> </td>
+          <td>SDL2</td>
+        </tr>
+        <tr>
+          <td>HLSL</td>
           <td> </td>
+          <td>GLFW</td>
+        </tr>
+        <tr>
+          <td>Python</td>
           <td> </td>
-          <td>ImGui</td>
+          <td>Emscripten</td>
+        </tr>
+        <tr>
+          <td>C</td>
           <td> </td>
+          <td>GLM</td>
+        </tr>
+        <tr>
+          <td>Bash</td>
+          <td> </td>
+          <td>Clang / GCC</td>
+        </tr>
+        <tr>
+          <td>HTML5</td>
+          <td> </td>
+          <td>Lucene / Solr</td>
+        </tr>
+        <tr>
+          <td>CSS</td>
+          <td> </td>
+          <td>JPA / Hibernate</td>
+        </tr>
+        <tr>
+          <td>JavaScript</td>
+          <td> </td>
+          <td>Spring</td>
+        </tr>
+        <tr>
+          <td>LaTeX</td>
+          <td> </td>
+          <td>MySQL / MariaDB</td>
+        </tr>
+        <tr>
           <td> </td>
           <td> </td>
           <td>Tomcat</td>
         </tr>
         <tr>
-          <td>HTML5</td>
           <td> </td>
           <td> </td>
+          <td>libClang</td>
+        </tr>
+        <tr>
           <td> </td>
-          <td>GLM</td>
           <td> </td>
+          <td>GSL</td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td>Assimp</td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td>Async++</td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td>PhysicsFS</td>
+        </tr>
+        <tr>
+          <td> </td>
+          <td> </td>
+          <td>Doctest / Catch2</td>
+        </tr>
+        <tr>
           <td> </td>
           <td> </td>
           <td>RenderDoc</td>
         </tr>
         <tr>
-          <td>CSS</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Lucene / Solr</td>
-          <td> </td>
           <td> </td>
           <td> </td>
           <td>Kdenlive (Video Editing)</td>
-        </tr>
-        <tr>
-          <td>LaTeX</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>JPA / Hibernate</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td>JavaScript</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Spring</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td>Python</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>libClang</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td>Bash</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>GSL</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Assimp</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Async++</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>PhysicsFS</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Doctest / Catch2</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-        </tr>
-        <tr>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td>Nuklear</td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
-          <td> </td>
         </tr>
       </tbody>
     </table>

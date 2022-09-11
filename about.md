@@ -6,7 +6,7 @@ headTitle: Florian Oetke
 group: navigation
 ---
 <div class="dual_column_container" markdown="1">
-<div class="dual_column" markdown="1">
+<div class="dual_column" markdown="1" style="width:28em; flex-grow: 1;">
 
 Hi! My name is Florian Oetke. I'm a C++ programmer with a passion for engine architecture and game design. Currently, I am a CS student at Trier University of Applied Sciences.
 
@@ -22,30 +22,36 @@ If you would like to get in touch just send me an <a href="mailto:info@second-sy
 
 </div>
 
-<div class="dual_column" markdown="1" style="min-width:40em">
+<div class="dual_column" markdown="1" style="width:18em">
 
-# Skills
+<h1 style="text-align:center">Skills</h1>
 
 
-| Languages	   | 	   | 	   | 	   | Engine/ Libraries |  |  |  | Tools |
-|--------------|-------------------|-------|--------------|--------------|--------------|--------------|--------------|--------------|
-| C++   |    |    |    | OpenGL |  |  |  | Git |
-| GLSL |  |  |  | Vulkan |  |  |  | Clang / GCC / MinGW |
-| CMake |  |  |  | Unity |  |  |  | Emscripten |
-| Java  	            |   	            |   	            |   	            | SDL2 |  |  |  | CMake |
-| C#         |  |  |  | GLFW |  |  |  | MySQL / MariaDB |
-| SQL |  |  |  | ImGui |  |  |  | Tomcat                   |
-| HTML5 |  |  |  | GLM |  |  |  | RenderDoc |
-| CSS        |  |  |  | Lucene / Solr |  |  |  | Kdenlive (Video Editing) |
-| LaTeX |  |  |  | JPA / Hibernate   |  |  |  |                          |
-| JavaScript |  |  |  | Spring |  |  |  |  |
-| Python     | | | | libClang | | | | |
-| Bash       |  |  |  | GSL |  |  |  |  |
-|            |  |  |  | Assimp |  |  |  |  |
-|  |  |  |  | Async++ |  |  |  |  |
-|  |  |  |  | PhysicsFS |  |  |  |  |
-|  |  |  |  | Doctest / Catch2 |  |  |  |  |
-|  |  |  |  | Nuklear |  |  |  |  |
+| Languages	   |  | Libraries / Tools |
+|--------------|--|-----------------------------|
+| C++          |  | OpenGL                      |
+| Java         |  | Git               |
+| GLSL         |  | Vulkan            |
+| C#           |  | Unity             |
+| CMake        |  | ImGui             |
+| SQL  	       |  | SDL2              |
+| HLSL         |  | GLFW              |
+| Python       |  | Emscripten        |
+| C            |  | GLM               |
+| Bash         |  | Clang / GCC       |
+| HTML5        |  | Lucene / Solr     |
+| CSS          |  | JPA / Hibernate   |
+| JavaScript   |  | Spring            |
+| LaTeX        |  | MySQL / MariaDB     | 
+|              |  | Tomcat            | 
+|              |  | libClang          |
+|              |  | GSL               |
+|              |  | Assimp            |
+|              |  | Async++           |
+|              |  | PhysicsFS         |
+|              |  | Doctest / Catch2  |
+|              |  | RenderDoc         |
+|              |  | Kdenlive (Video Editing) |
 
 </div>
 </div>

@@ -199,7 +199,7 @@
 }
 .site-container p {
 	margin-top: 0.5em;
-    margin-bottom: 0;
+    margin-bottom: 0.5em;
 }
 
 .site-sidebar {
@@ -292,7 +292,7 @@
     text-decoration: none;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
     font-family: 'Oxygen', sans-serif;
-    font-size: 14px;
+    font-size: 18px;
 	padding: 12px 10px 8px;
 }
 
@@ -445,7 +445,7 @@ blockquote {
 }
 
 .layout p {
-	line-height: 1.35;
+	line-height: 1.5;
 	text-align: justify;
 	hyphens: auto;
 	-moz-hyphens: auto;
@@ -458,15 +458,13 @@ blockquote {
 }
 
 .dual_column_container {
-	margin-left: 0;
-	margin-right: 0;
-}
-.dual_column:last-child {
-	margin-right: 0;
+	display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: space-around;
 }
 .dual_column {
-	margin-left: 0;
-	margin-right: 0;
 }
 
 .column_text {
@@ -739,16 +737,7 @@ code {
 	max-width: 100% !important;
 }
 
-@media screen and (min-width: 100em) {
-	.dual_column {
-		margin-right: 4em;
-	}
-	.dual_column_container {
-		display: flex; 
-	}
-}
-
-@media screen and (min-width: 50em) {
+@media screen and (min-width: 64em) {
 	#top-nav-title {
 		width: 30%;
 		display: block;
