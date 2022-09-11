@@ -26,9 +26,13 @@
 	display: inline-block;
 	overflow: hidden;
 	margin: 5px 5px 5px 5px;
-	width: 500px;
-	height: 362px;
-	min-height: 362px;
+	
+	width: 30em;
+	max-width: calc(100vw - (5px + 8px + 10px + 2em) * 2);
+	
+	height: 22em;
+	max-height: calc((100vw - (5px + 8px + 10px + 2em) * 2) * 0.82);
+	
 	vertical-align: top;
 	
 	-webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
@@ -49,19 +53,20 @@
 }
 .pf_entry label {
 	display: inline-block;
-	width: 100px;
-    font-size: 14px;
+	width: 30%;
 }
 .pf_entry .label_value {
 	display: inline-block;
-	width: 315px;
+	width: 68%;
 	vertical-align: top;
 }
 
-.pf_entry > .pf_video {
+.pf_entry .pf_video {
 	z-index: -1;
 	position: absolute;
 	left: 0;
+	width: 100%;
+	aspect-ratio: 16 / 9;
 }
 .pf_entry:hover > .pf_video {
 	z-index: 1;
@@ -70,28 +75,34 @@
 	z-index: 1;
 }
 
-.pf_entry > .pf_preview {
+.pf_entry .pf_preview {
 	display: block;
 	z-index: 0;
+	width: 100%;
+	aspect-ratio: 16 / 9;
 }
 .pf_entry:hover > .pf_preview {
 }
+
 .pf_active > .pf_preview {
 }
 
 .pf_active {
 	height: auto !important;
+	max-height: none !important;
     background-color: rgba(0, 0, 0, 0.1);
 }
 .pf_expand {
 	height: auto !important;
-	min-height: 900px;
+	max-height: none !important;
     background-color: rgba(0, 0, 0, 0.1);
 }
 .pf_entry > h2 {
-	margin-left: 4px;
-	margin-top: 4px;
-	margin-bottom: 0px;
+	margin: 4px;
+}
+.pf_entry > h2 > .timeframe {
+	font-size: 40%;
+	display: block;
 }
 .pf_entry > div {
 	margin: 4px;
@@ -170,7 +181,7 @@
 }
 .page-header > h1 {
 	margin: 0;
-	font-size: 40px;
+	font-size: 36px;
 	text-rendering: optimizelegibility;
 	font-family: 'Advent Pro', sans-serif;
     display: inline-block;
@@ -292,7 +303,7 @@
     text-decoration: none;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
     font-family: 'Oxygen', sans-serif;
-    font-size: 18px;
+    font-size: 14px;
 	padding: 12px 10px 8px;
 }
 
@@ -373,10 +384,10 @@ table code {
 }
 
 body {
-	min-width: 600px;
 	position: relative;
 	text-rendering: optimizeLegibility;
 	font-variant: slashed-zero;
+	min-width: 22em;
 }
 
 button {
@@ -451,7 +462,7 @@ blockquote {
 	-moz-hyphens: auto;
 }
 
-.layout:not(.layout_portfolio) {
+.layout {
     width: auto;
     padding-left: 2em;
     padding-right: 2em;
@@ -479,6 +490,7 @@ blockquote {
 
 .captioned_image {
 	width: 22em;
+	max-width: 100%;
 
 	vertical-align: middle;
 	text-align: center;
@@ -552,6 +564,7 @@ blockquote {
 
 .open_img {
     width: 20em;
+    max-width: calc(100% - 1em - 1em);
 	margin-left: 1em;
 	margin-right: 1em;
 	
@@ -563,6 +576,7 @@ blockquote {
 .open_img > img {
     height: auto;
     width: 100%;
+    max-width: 100%;
 	display: block;
     margin: 0 auto;
     object-position: center;
@@ -570,6 +584,7 @@ blockquote {
 .open_img > video {
     height: auto;
     width: 100%;
+    max-width: 100%;
 	display: block;
     margin: 0 auto;
     object-position: center;
@@ -699,9 +714,6 @@ blockquote {
     border: 2px solid #888;
 }
 
-body {
-	min-width: 30em;
-}
 
 pre code {
 	font-size: 60%;
@@ -716,6 +728,10 @@ code {
 	border-radius: 0.5em;
 	box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.3) 0 1px 7px 0px inset;
 	hyphens: none;
+}
+
+.katex-display {
+	overflow: auto hidden;
 }
 
 .vertical-menu .menu-list .menu-heading.menu-sub-heading {
@@ -748,7 +764,6 @@ code {
 	.nav {
 		position: relative;
 		left: 0;
-		display: block;
 		float: right;
 		margin: 0;
 	}
@@ -757,12 +772,6 @@ code {
 @media screen and (min-width: 64em) {
 	.post-site {
 		padding-left: 312px !important;
-	}
-}
-
-@media screen and (min-width: 2610px) {
-	.layout_portfolio {
-		max-width: 2610px;
 	}
 }
 

@@ -31,7 +31,7 @@ $site-max-width: 1800;
 
 @mixin media($size: small) {
   @if $size == small {
-    @media screen and (min-width: 35.5em) { @content; }
+    @media screen { @content; }
   }
   @else if $size == medium {
     @media screen and (min-width: 50em) { @content; }

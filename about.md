@@ -18,8 +18,6 @@ Fueled by some of my work in graphics programming and a passion for RPGs, I've a
 
 If you would like to get in touch just send me an <a href="mailto:info@second-system.de">e-mail</a>, contact me through <a href="http://www.xing.com/profile/Florian_Oetke" rel="noopener noreferrer">Xing</a> or have a look at my projects on <a href="https://gitlab.com/lowkey42" rel="noopener noreferrer">GitLab</a> or <a href="https://github.com/lowkey42" rel="noopener noreferrer">GitHub</a>.
 
-<br><br>
-
 </div>
 
 <div class="dual_column" markdown="1" style="width:18em">
