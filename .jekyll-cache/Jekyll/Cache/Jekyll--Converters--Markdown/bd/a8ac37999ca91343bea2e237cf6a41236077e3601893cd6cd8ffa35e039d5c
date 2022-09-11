@@ -1,0 +1,30 @@
+I"`<p>TOOD: intro: last post about movement; previously: elevation change and subduction =&gt; now high-level interactions =&gt; suturing and rifting =&gt; Step 10</p>
+
+<!--more-->
+
+<h2 id="suturing">Suturing</h2>
+
+<p>TODO: when, how, possible improvements</p>
+
+<h2 id="rifting">Rifting</h2>
+
+<p>TODO: when, how, possible improvements</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>TODO: analysis of results =&gt; prove of concept yes/no?</p>
+
+<p>TODO: applyed some improvements, found writing these posts</p>
+
+<p>TODO: future developments</p>
+<ul>
+  <li>Improve Refinement step, more resultion where its need and less where its not (new layer that contains information about how active (interesting) a given zone is)</li>
+  <li>Test if the originaly planed elevation calculation based on area-changes of sub-plates and isostatic equilibrium works/would be an improvement, now that all small kinks in the simulation are worked out</li>
+  <li>Improved curst formation by simulating vulcansim at subduction zones, rifts and (maybe later) Hot-Spots (e.g. Hawaii)</li>
+  <li>Improve meta-plate interactions =&gt; more interesting rifting (maybe using vulcanism)</li>
+  <li>Detail generation (based on paper)</li>
+  <li>Much later: Climate and hydrology simulation =&gt; rivers + better erosion</li>
+  <li>Required for that =&gt; Better Tooling/Editor (already mostly done)</li>
+</ul>
+
+:ET

@@ -1,0 +1,29 @@
+I"<p>TOOD: intro =&gt; movement causes self-intersections and other artefacts =&gt; need to be cleaned up in each iteration</p>
+
+<p>TODO: interaction with simulation data in layers =&gt; defined by their definition (good enough for now, but might need extension later on)</p>
+
+<!--more-->
+
+<h2 id="1-refinement">1. Refinement</h2>
+<p>TODO: some areas are more interesting than other + model allows for variing level-of-detail =&gt; increase/decrease resolution by adding/removing vertices (currently pretty simple; room for much more improvements, both results and performance)</p>
+
+<h2 id="3-create-new-oceanic-crust-at-divergent-boundaries">3. Create new oceanic crust at divergent boundaries</h2>
+<p>TODO: plates move apart =&gt; add new sub-plate when distance&gt;X</p>
+
+<p>TODO: how are elevations and crust type determined (note: placeholder =&gt; correct approach would be to simulate vulcanism to create continental crust =&gt; extension for later)</p>
+
+<h2 id="7-find-and-resolve-collisions">7. Find and resolve collisions</h2>
+<p>TODO: self-intersections = collisions =&gt; subduction =&gt; collapse edges to solve</p>
+
+<p>TODO: error case (low liklyhood but can happen if timestep is too large or movement too fast or chaotic)</p>
+
+<h2 id="8-restore-delaunay-condition">8. Restore Delaunay condition</h2>
+
+<p>TODO: description of Delaunay condition (what is it and why is it important to us) =&gt; how its checked =&gt; how its restored (rotate + additional conditions to avoid artifacts)</p>
+
+<p>TODO: finding and fixing degenerated triangles. e.g. triangles that are extremly thin or have an extremly small height (=&gt; vertices are nearly colliding) =&gt; re-check delaunay condition</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>Next =&gt; large-scale interaction (splitting/mergin) of plates</p>
+
+:ET

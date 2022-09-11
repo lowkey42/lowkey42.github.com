@@ -8,6 +8,7 @@ gem "jekyll"
 gem "jekyll-paginate-v2"
 gem 'jekyll-seo-tag'
 gem "kramdown-math-katex"
+gem 'jekyll-sitemap'
 
 # gem "rails"
 
