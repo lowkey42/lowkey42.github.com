@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>
+
+
+    Portfolio – SecondSystem
+  
+  </title>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel='stylesheet' href='/assets/css/purity.css'>
+<link rel='stylesheet' href='/custom.css'>
+
+<script src="/comment.js"></script>
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000">
+<meta name="apple-mobile-web-app-title" content="Second-System.de">
+<meta name="application-name" content="Second-System.de">
+<meta name="msapplication-TileColor" content="#000000">
+<meta name="theme-color" content="#ffffff">
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Portfolio" />
+<meta name="author" content="Florian Oetke" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://second-system.de/portfolio" />
+<meta property="og:url" content="https://second-system.de/portfolio" />
+<meta property="og:site_name" content="SecondSystem" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Portfolio" />
+<script type="application/ld+json">
+{"author":{"@type":"Person","name":"Florian Oetke"},"headline":"Portfolio","@type":"WebPage","url":"https://second-system.de/portfolio","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+<!-- TODO: remove once chrome support for hyphenation is stable enough -->
+<script>
+var Hyphenopoly = {
+    require: {
+        "en-us": "FORCEHYPHENOPOLY"
+    },
+    setup: {
+        selectors: {
+            ".post-site": {}
+        }
+    }
+};
+</script>
+<script src="/assets/js/Hyphenopoly_Loader.js"></script>
+
+
+    
+    
+<script language="javascript" type="text/javascript">
+	var active_pf_entry;
+	var prev_single_row = false;
+	
+	function stop_event(event) {
+		event = event || window.event // cross-browser event
+	
+		if (event.stopPropagation) {
+			// W3C standard variant
+			event.stopPropagation()
+		} else {
+			// IE variant
+			event.cancelBubble = true
+		}
+	}
+	
+	function pf_play(elem, muted) {
+		var v = elem.getElementsByTagName('iframe')[0];
+		if(v!==undefined) {
+			v.myStarted = true;
+			v.style.visibility = 'visible';
+			
+			v.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+			v.contentWindow.postMessage('{"event":"command","func":"setPlaybackQuality","args":"hd1080"}', '*');
+			
+			if(muted) {
+				v.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+			} else {
+				v.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+			}
+		}
+	}
+	function pf_stop(elem) {
+		var v = elem.getElementsByTagName('iframe')[0];
+		if(v!==undefined) {
+			v.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+		}
+	}
+	
+	function on_pf_entry_click(event, elem) {
+		if(elem===active_pf_entry) {
+			stop_event(event);
+			return;
+		}
+	
+		if (active_pf_entry !== undefined && active_pf_entry!==null) {
+			if(active_pf_entry.className=="pf_entry pf_active pf_expand")
+				active_pf_entry.className = "pf_entry pf_expand";
+			else
+				active_pf_entry.className = "pf_entry";
+			pf_stop(active_pf_entry);
+		}
+		
+		if(elem!==null) {
+			if(elem.className=="pf_entry pf_expand")
+				elem.className = "pf_entry pf_active pf_expand";
+			else
+				elem.className = "pf_entry pf_active";
+			pf_play(elem, false);
+			location.hash = elem.id;
+		} else {
+			location.hash = "";
+		}
+		active_pf_entry = elem;
+		
+		if(event!==undefined) {
+			stop_event(event);
+		}
+	}
+	function on_pf_entry_mouseover(elem) {
+		if (active_pf_entry===undefined || active_pf_entry===null || prev_single_row) {
+			pf_play(elem, true);
+		}
+	}
+	function on_pf_entry_mouseout(elem) {
+		if (active_pf_entry===undefined || active_pf_entry===null || active_pf_entry!==elem || prev_single_row) {
+			pf_stop(elem);
+		}
+	}
+	
+	function on_resize() {
+		var entries = document.getElementsByClassName("pf_entry");
+		if(entries.length>0) {
+			var y = entries[0].getBoundingClientRect().top;
+			var single_row = true;
+			for(var i = 1; i < entries.length; i++) {
+				if(y != entries[i].getBoundingClientRect().top)
+					single_row = false;   
+			}
+			
+			if(single_row) {
+				prev_single_row = true;
+				for(var i = 0; i < entries.length; i++) {
+					entries[i].className = "pf_entry pf_expand";
+				}
+				
+			} else if(prev_single_row) {
+				prev_single_row = false;
+				for(var i = 0; i < entries.length; i++) {
+					entries[i].className = "pf_entry";
+				}
+			}
+		}
+	}
+		
+	on_resize();
+	window.onresize = function(event) {
+		on_resize();
+	}
+	
+</script>
+
+  </head>
+  <body>
+    <div id='site-header-bg' class='site-header-bg'></div>
+    <div class="layout">
+      
+  <div id='site-header' class='site-header'>
+    <div class='pure-g site-header-container'>
+
+      <div id='top-nav-title' class='pure-u-1-1 pure-u-md-1-2 text-align-left-medium'>
+        <a class='site-header-title' href='/'>SecondSystem</a>
+        
+          <div class='site-header-subtitle'>Building worlds from bits and dust</div>
+        
+      </div>
+
+      <div id='top-nav-menu' class='pure-u-1-1 pure-u-md-1-2 site-header-links text-align-right-medium'>
+          <ul class="nav">
+            
+            
+            
+
+
+  
+    
+      
+      	
+      	<li><a href="/about">About</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/">Blog</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li class="active"><a href="/portfolio" class="active">Portfolio</a></li>
+      	
+      
+    
+  
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+  
+
+
+
+        
+            <li class="divider-vertical"></li>
+            
+            <li>
+              <a href="https://gitlab.com/lowkey42" target="_blank" rel="noopener noreferrer">
+                <span>GitLab</span>
+              </a>
+            </li>
+            
+            
+            <li>
+              <a href="https://github.com/lowkey42" target="_blank" rel="noopener noreferrer">
+                <span>GitHub</span>
+              </a>
+            </li>
+            
+          </ul>
+      </div>
+
+    </div>
+  </div>
+
+
+      <div id='site-main' class='pure-g site-main'>
+        <div id='site-container' class='pure-u-1 site-container'>
+        
+        
+<div class="page-header">
+	<h1> Portfolio </h1>
+</div>
+
+<div class="portfolio_container" onclick="on_pf_entry_click(event, null)">
+<div class="portfolio">
+	
+	<section id="ucpp_doc" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>UCPP DocGen <span class="timeframe">(2021 - Now)</span></h2>
+		<img src="preview_ucpp_doc.png" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">A libClang based HTML documentation generator for modern C++ projects.</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="https://lowkey42.gitlab.io/ucpp_doc/">Example</a>,
+					<a class="pf_download_link" href="https://gitlab.com/lowkey42/ucpp_doc">GitLab</a>
+				</span><br/>
+				<label>Team:</label> <span class="label_value">1 programmer</span><br/>
+				<label>Framework:</label> <span class="label_value">C++20, Python, Sphinx, libClang</span><br/>
+			</p>
+			
+			<p>A simple quick-and-dirty preprocessor that uses libClang to parse a C++ codebase to enrich RST files with API documentations and markup, which can be consumed by Sphinx to generate an HTML site.</p>
+			
+			<p>Features:
+				<ul>
+					<li>C++20 support on par with the current Clang release (including concepts)</li>
+					<li>Compact rendering of overload sets</li>
+					<li>Reference links for documented entities in <code>.. code-block::</code> directives</li>
+					<li>Extraction of marked function bodies as example code</li>
+					<li>Deduction of <code>auto</code> return types</li>
+					<li>Extraction of <code>requires</code> clauses</li>
+					<li>Human-readable formating of concept definitions</li>
+					<li>Generation of web links to STL types and other external libraries</li>
+					<li>Automatic detection of many higher level attributes for types (POD, Standard-Layout, Regular, Hashable ...)</li>
+					<li>Supports both reStructuredText and a subset of Doxygen commands in comments (as well as an unhealthy mix of both)</li>
+					<li>Custom CSS for the Furo Sphinx-Theme
+						<ul>
+							<li>Unifies the color scheme of example code blocks and documentation entries</li>
+							<li>Custom styling for attributes and requirements</li>
+							<li>More compact rendering of templates and admonitions</li>
+						</ul>
+					</li>
+				</ul>
+
+			</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+	
+	<section id="yggdrasill" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>Yggdrasill <span class="timeframe">(2020 - Now)</span></h2>
+		<iframe src="https://www.youtube.com/embed/8rrOfKxk8Kk?enablejsapi=1&loop=1&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img src="preview_yggdrasill.png" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">A library for the procedural generation of planets.</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="/tag/yggdrasill">Blog</a>
+					<a class="pf_download_link" href="https://cranky-swartz-3250cb.netlify.app/">WebGL</a>,
+					<a class="pf_download_link" href="https://cranky-swartz-3250cb.netlify.app/windows.zip">Windows</a>,
+					<a class="pf_download_link" href="https://cranky-swartz-3250cb.netlify.app/linux.zip">Linux</a>,
+					<a class="pf_download_link" href="https://gitlab.com/yggdrasill_world_gen/yggdrasill">GitLab</a>
+				</span><br/>
+				<label>Team:</label> <span class="label_value">1 programmer</span><br/>
+				<label>Framework:</label> <span class="label_value">C++20, OpenGL ES, ImGui</span><br/>
+			</p>
+			
+			<p>Yggdrasill is a work-in-progress world generation toolkit, that currently consists of 4 main parts:
+				<ul>
+					<li>A low-level C-API, designed for easy portability and as a basis for high-level APIs written in other languages</li>
+					<li>A high-level C++-API</li>
+					<li>A number of modules that solve different aspects of the world-generation process</li>
+					<li>An interactive editor that utilizes these modules to generate worlds in real-time</li>
+				</ul>
+			</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+		
+	<section id="phase_shifter" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>PhaseShifter <span class="timeframe">(2019)</span></h2>
+		<iframe src="https://www.youtube.com/embed/UfWMBKz7yyc?enablejsapi=1&loop=1&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img src="preview_phase_shifter.jpeg" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">Crypt of the NecroDancer meets Enter The Gungeon.</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="demos/phase_shifter.zip">Download</a>,
+					<a class="pf_download_link" href="https://gitlab.fsi.hochschule-trier.de/GameDevWeek/sommersemester-2019/cpp/phaseshifter">GitLab</a>
+				</span><br/>
+				<label>Time frame:</label> <span class="label_value">6 days</span><br/>
+				<label>Team:</label> <span class="label_value">4 programmers, 1 artist</span><br/>
+				<label>Framework:</label> <span class="label_value">C++17 with Mirrage-Engine</span><br/>
+			</p>
+			
+			<p>A turn based bullet-hell shooter that is controlled with a single button. Slice through hordes of enemies while dodging an endless stream of bullets. You're a lighting fast angel of death ... if you can keep up with the beat.</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+
+	<section id="mirrage" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>Mirrage <span class="timeframe">(2017 - 2021)</span></h2>
+		<iframe src="https://www.youtube.com/embed/lRZGpQ0QQm0?enablejsapi=1&loop=1&playlist=gHHLuwjDiZo&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img src="preview_mirrage.jpeg" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">A Vulkan based 3D renderer and simple game engine featuring screen space global illumination.</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="https://gitlab.com/lowkey42/mirrage">GitLab</a>,<br>
+					<a class="pf_download_link" href="/ssgi_thesis.pdf">Thesis about GI algorithm (german)</a>,<br>
+					<a class="pf_download_link" href="/mirrage_dual_quaternion_skinning.pdf">Thesis about Dual-Quaternion skinning (german)</a>,<br>
+					<a class="pf_download_link" href="/mirrage_tone_mapping.pdf">Thesis about local tone mapping operator (german)</a>
+				</span> <br/>
+				<label>Time frame:</label> <span class="label_value">4 years</span><br/>
+				<label>Team:</label> <span class="label_value">1 programmer</span><br/>
+				<label>Framework:</label> <span class="label_value">C++17, Vulkan, SDL2</span><br/>
+			</p>
+			
+			<p>Mirrage (Mirrage Indirect Radiance Renderer And Game Engine) is a Vulkan-based deferred renderer with bits and pieces of a simple game engine. It has been developed as part of my <a href="/ssgi_thesis.pdf">CS Bachelor's thesis</a> focussing on screen-space global illumination in 2017.</p>
+			
+			<p>
+				Features:
+				<ul>
+					<li>Deferred renderer</li>
+					<li>Skeletal animations</li>
+					<li>Easily extensible data oriented entity component system</li>
+					<li>Diffuse and specular global Illumination with screen space ray-tracing</li>
+					<li>GPGPU particles</li>
+					<li>Weight base order independent transparency</li>
+					<li>Depth of field</li>
+					<li>Visibility matching tone mapping based on histogram equalization</li>
+				</ul>
+			</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+	
+	<section id="shhhinobi" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>Shhhinobi <span class="timeframe">(2017)</span></h2>
+		<iframe src="https://www.youtube.com/embed/r_tCyxPco-0?enablejsapi=1&loop=1&playlist=r_tCyxPco-0&&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img src="preview_shhhinobi.jpeg" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">Shhh! You're a Ninja and no one can see you &ndash; but so is everyone else. At least until you move!</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="https://globalgamejam.org/2017/games/shhhinobi">GGJ17</a>,
+					<a class="pf_download_link" href="https://github.com/compix/NINJA">GitHub</a>,
+					<a class="pf_download_link" href="https://www.airconsole.com/play/battle-games/shhhinobi">AirConsole (WebGL)</a>
+				</span><br/>
+				<label>Time frame:</label> <span class="label_value">48+ hours</span><br/>
+				<label>Team:</label> <span class="label_value">2 programmers, 2 artists</span><br/>
+				<label>Framework:</label> <span class="label_value">Unity</span><br/>
+			</p>
+			
+			<p>A party arena platformer for up to 8 players in which everyone is invisible until they move. Initially, it was developed during the 2017 Global Game Jam.</p><p> Later we extend and polished that prototype and adapted the control scheme for AirConsole, so it can be played in the browser using a smartphones as a controller.</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+	
+	<section id="magnum-opus" class="pf_entry pf_active" onclick="on_pf_entry_click(event, this)"
+	         onmouseenter="on_pf_entry_mouseover(this)" onMouseLeave="on_pf_entry_mouseout(this)">
+		<h2>Magnum Opus <span class="timeframe">(2015)</span></h2>
+		<iframe src="https://www.youtube.com/embed/TXaIRCCGJPI?enablejsapi=1&loop=1&playlist=TXaIRCCGJPI&&modestbranding=1&autohide=1&showinfo=0&autoplay=0&controls=1" frameborder="0" allowfullscreen class="pf_video"></iframe>
+		<img src="preview_magnum_opus.png" class="pf_preview"/>
+		<div>
+			<p class="pf_teaser">Collect and combine raw elements to unleash the forces of nature against your foes in this 2D Zombie Shooter.</p>
+			<p class="pf_info_block">
+				<label>Links:</label> <span class="label_value">
+					<a class="pf_download_link" href="demos/MagnumOpus.html">WebGL</a>,
+					<a class="pf_download_link" href="https://github.com/lowkey42/MagnumOpus">GitHub</a>
+				</span><br/>
+				<label>Time frame:</label> <span class="label_value">3 months</span><br/>
+				<label>Team:</label> <span class="label_value">2 programmers</span><br/>
+				<label>Framework:</label> <span class="label_value">C++14, OpenGL, SDL2</span><br/>
+			</p>
+			
+			<p>A 2D twin-stick shooter in which you collect and combine elements for stronger attacks. This was my first larger game project and has been developed as part of a team project withing the scope of my Bachelor's degree.</p>
+			
+			<p>
+				Features:
+				<ul>
+					<li>Complex combat system with interactions between 5 different elements</li>
+					<li>OpenGL, SDL and C++ based 2D engine written from scratch</li>
+					<li>Online highscore list</li>
+					<li>Procedural level generation</li>
+				</ul>
+			</p>
+		</div>
+		<div class="pf_fadeout"> <i class="arrow down_arrow"></i> </div>
+	</section>
+	
+</div>
+</div>
+
+<br style="clear: both"/>
+
+<script language="javascript" type="text/javascript">
+	var cusid_ele = document.getElementsByClassName('pf_entry');
+	for (var i = 0; i < cusid_ele.length; ++i) {
+		cusid_ele[i].className = "pf_entry";
+	
+		var v = cusid_ele[i].getElementsByTagName('iframe')[0];
+		if(v!==undefined) {
+			v.onload = function(e) {
+				var v = e.target;
+				v.style.visibility = 'hidden';
+				v.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+				v.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+				v.contentWindow.postMessage('{"event":"command","func":"setPlaybackQuality","args":"hd1080"}', '*');
+							
+				setTimeout(function() {
+					v.style.visibility = 'visible';
+					if(v.myStarted==undefined)
+						v.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+				}, 2000);
+			};
+		}
+	}
+
+	var anchor = window.location.hash.substring(1);
+	if(anchor!==null) {
+		var e = document.getElementById(anchor.replace("entry_", ""));
+		if(e!==null) {
+			location.hash = anchor.replace("entry_", "");
+			location.hash = anchor;
+			on_pf_entry_click(undefined, e);
+		}
+	}
+	
+	on_resize();
+</script>
+
+        </div>
+      </div>
+      
+  <div id='site-footer' class='site-footer'>
+    <div class='pure-g site-footer-container'>
+
+      <div class='pure-u-1 pure-u-sm-1-2 text-align-left-small'>
+        &copy; 2019 Florian Oetke
+      </div>
+
+      <div class='pure-u-1 pure-u-sm-1-2 text-align-right-small'>
+        <a href='/impressum.html'>Impressum / Datenschutzerklärung</a>
+      </div>
+
+    </div>
+  </div>
+
+
+    </div>
+  </body>
+</html>
