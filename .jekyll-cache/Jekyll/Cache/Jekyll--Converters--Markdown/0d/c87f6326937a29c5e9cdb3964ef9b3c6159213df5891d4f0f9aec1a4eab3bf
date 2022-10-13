@@ -1,0 +1,384 @@
+I"�<p>Now that we have a way to generate some (albeit a bit dull) tectonic plates, we can use an iterative algorithm that simulates plate movements and interactions, to refine it into (hopefully) realistic looking landforms.</p>
+
+<p>Because the simulation itself is relatively complex<sup class="footnote" onclick="showFootnote(this)" title="As can be deduced from the fact that it has taken me (another) eternity to finally write it down. " data-title="As can be deduced from the fact that it has taken me (another) eternity to finally write it down. ">[1]</sup>, I’ve split it into three separate posts:</p>
+
+<ul>
+  <li>Moving the plates and determining how they should interact with each other (this post)</li>
+  <li>Updating the mesh after vertices have been moved, which includes the creation and destruction of crust material on plate boundaries, as well as detecting and handling collisions between plates</li>
+  <li>Simulating large-scale plate interactions like rifting and suturing</li>
+</ul>
+
+<!--more-->
+
+<h2 id="plate-motion">Plate Motion</h2>
+
+<p>The first aspect we will take a closer look at is, how moving the plates on the surface is implemented – which are steps 2, 4 and 5 of the algorithm outline I’ve given <a href="/2022/03/01/tectonics_1#algorithm">here</a>.</p>
+
+<p>To recap, contrary to the work of Cortial et al., we model our plates as a collection of interconnected sub-plates, each defining an area of similar composition and properties around it. To simulate the movement of these sub-plates, each of them is treated like an infinitesimal particle (represented by the mesh vertices), that interacts with each sub-plate around it by applying forces to them, depending on their relationship<sup class="footnote" onclick="showFootnote(this)" title="Are they part of the same plate or do they form a plate-boundary? Which type of boundary? Which of the two plates is subducting? ... " data-title="Are they part of the same plate or do they form a plate-boundary? Which type of boundary? Which of the two plates is subducting? ... ">[2]</sup>.</p>
+
+<p>This model allows us not only to represent heterogeneous plates, that are composed of many different types of crust, but also simplifies our simulation algorithm because (at least in this step) we only need to check the surrounding vertices to calculate the forces that affect each sub-plates movements.</p>
+
+<h3 id="step-5-simulate-movement">Step 5: Simulate movement</h3>
+
+<p>Our goal for this part of the algorithm is to simulate the motion of each of these sub-plates/vertices/particles. Since each sub-plate is modelled as a particle, calculating their motion consists of two main steps: First determine the forces that act on each particle, and second update their acceleration, velocity and position based on these forces.</p>
+
+<p>I think, the best we to look at this, is to start with the last (and easiest) step. The motion of each particle follows the well-known Newtonian equations of motion, which we will approximate numerically using Verlet integration because of a couple of key advantages:</p>
+<ul>
+  <li>Similar computational complexity to implicit/explicit Euler integration, but with much better numeric stability</li>
+  <li>Easy to implement, since we only need to keep track of the current and previous position</li>
+  <li>Constraints are trivially easy to implement, by just modifying the calculated new positions. Which is important for us because we have to constrain each vertex to keep it on the sphere’s surface.</li>
+</ul>
+
+<p>To update each vertex position <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>p</mi><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{p}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9084399999999999em;vertical-align:-0.19444em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.15216em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span></span></span> we use:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>p</mi><mo>⃗</mo></mover><mi>t</mi></msub><mo>=</mo><mrow><mo fence="true">∥</mo><msub><mover accent="true"><mi>p</mi><mo>⃗</mo></mover><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mo stretchy="false">(</mo><msub><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>⋅</mo><mtext>dt</mtext><mo>+</mo><mfrac><mover accent="true"><mtext>force</mtext><mo>⃗</mo></mover><mtext>mass</mtext></mfrac><mo>⋅</mo><msup><mtext>dt</mtext><mn>2</mn></msup><mo stretchy="false">)</mo><mo>⋅</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mtext>drag</mtext><mo>⋅</mo><mi>d</mi><mi>t</mi><mo stretchy="false">)</mo><mo fence="true">∥</mo></mrow><mo>⋅</mo><mtext>radius</mtext></mrow><annotation encoding="application/x-tex">\vec{p}_t = \left \| \vec{p}_{t-1} + (\vec{v}_{t-1}\cdot \text{dt} + \frac{\vec{\text{force}}}{\text{mass}}\cdot \text{dt}^2)\cdot (1-\text{drag} \cdot dt) \right \| \cdot \text{radius}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9084399999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.15216em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:3.0120299999999998em;vertical-align:-1.250025em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.7620049999999998em;"><span style="top:-2.5660049999999996em;"><span class="pstrut" style="height:3.8160299999999996em;"></span><span class="delimsizinginner delim-size1"><span>∥</span></span></span><span style="top:-3.1640049999999995em;"><span class="pstrut" style="height:3.8160299999999996em;"></span><span style="height:1.8160299999999998em;width:0.556em;"><svg width='0.556em' height='1.8160299999999998em' style='width:0.556em' viewBox='0 0 556 1816' preserveAspectRatio='xMinYMin'><path d='M145 0 H188 V1816 H145z M145 0 H188 V1816 H145zM367 0 H410 V1816 H367z M367 0 H410 V1816 H367z'/></svg></span></span><span style="top:-4.972035em;"><span class="pstrut" style="height:3.8160299999999996em;"></span><span class="delimsizinginner delim-size1"><span>∥</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.250025em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.15216em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mopen">(</span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">dt</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.65444em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">mass</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9774399999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord text"><span class="mord">force</span></span></span><span style="top:-3.26344em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2355em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord text"><span class="mord">dt</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8984479999999999em;"><span style="top:-3.1473400000000002em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord text"><span class="mord">drag</span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.7620049999999998em;"><span style="top:-2.5660049999999996em;"><span class="pstrut" style="height:3.8160299999999996em;"></span><span class="delimsizinginner delim-size1"><span>∥</span></span></span><span style="top:-3.1640049999999995em;"><span class="pstrut" style="height:3.8160299999999996em;"></span><span style="height:1.8160299999999998em;width:0.556em;"><svg width='0.556em' height='1.8160299999999998em' style='width:0.556em' viewBox='0 0 556 1816' preserveAspectRatio='xMinYMin'><path d='M145 0 H188 V1816 H145z M145 0 H188 V1816 H145zM367 0 H410 V1816 H367z M367 0 H410 V1816 H367z'/></svg></span></span><span style="top:-4.972035em;"><span class="pstrut" style="height:3.8160299999999996em;"></span><span class="delimsizinginner delim-size1"><span>∥</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.250025em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord text"><span class="mord">radius</span></span></span></span></span></span>
+
+<p>Where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">dt</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal">t</span></span></span></span> is the delta time between the two steps, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mrow><mi>f</mi><mi>o</mi><mi>r</mi><mi>c</mi><mi>e</mi></mrow><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{force}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1718799999999998em;vertical-align:-0.19444em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9774399999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">orce</span></span></span><span style="top:-3.26344em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2355em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span></span></span> is the sum of all forces acting on the sub-plate (whose calculation we’ll look at next), <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>a</mi><mi>s</mi><mi>s</mi></mrow><annotation encoding="application/x-tex">mass</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal">ma</span><span class="mord mathnormal">ss</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mi>r</mi><mi>a</mi><mi>g</mi></mrow><annotation encoding="application/x-tex">drag</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathnormal">d</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span> are constants and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>v</mi><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{v}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.714em;vertical-align:0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span></span></span></span> is the velocity, which is calculated after the positions are updated using:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mi>t</mi></msub><mo>=</mo><mfrac><mrow><msub><mover accent="true"><mi>p</mi><mo>⃗</mo></mover><mi>t</mi></msub><mo>−</mo><msub><mover accent="true"><mi>p</mi><mo>⃗</mo></mover><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\vec{v}_t = \frac{\vec{p}_t-\vec{p}_{t-1}}{dt}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.864em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:-0.03588em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.077em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.391em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="mord mathnormal">t</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.15216em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">t</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.15216em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>Of course, because each sub-plate is moved independent of the others, there will be some problems like self-intersections, which we’ll need to clean up afterwards. But that is a topic for another blog post. First, we’ll take a look at the more interesting part of the sub-plate motion, which is how the forces are determined.</p>
+
+<h3 id="step-2-identify-boundary-types">Step 2: Identify boundary-types</h3>
+
+<p>The forces that each sub-plate applies to its direct neighbors depend on their distance to each other and how they relate to each other. The latter of which is based on the five boundary types, we’ve discussed earlier:</p>
+
+<div class="image_list">
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_divergent.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_divergent.svg" alt="" />
+	</a>
+  <figcaption><b>Divergent boundary</b>: Two plates moving away from each other<sup><a href="https://commons.wikimedia.org/wiki/File:Continental-continental_constructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_convergent_co.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_convergent_co.svg" alt="" />
+	</a>
+  <figcaption><b>Convergent boundary (CO)</b>: An oceanic and a continental plate colliding with each other<sup><a href="https://commons.wikimedia.org/wiki/File:Oceanic-continental_destructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_convergent_oo.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_convergent_oo.svg" alt="" />
+	</a>
+  <figcaption><b>Convergent boundary (OO)</b>: Two oceanic plates colliding with each other<sup><a href="https://commons.wikimedia.org/wiki/File:Oceanic-oceanic_destructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_transform.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_transform.svg" alt="" />
+	</a>
+  <figcaption><b>Transform boundary</b>: Two plates moving past each other<sup><a href="https://commons.wikimedia.org/wiki/File:Continental-continental_conservative_plate_boundary_opposite_directions.svg">[source]</a></sup></figcaption>
+</figure>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/05/plate_boundary_convergent_cc.svg" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/05/plate_boundary_convergent_cc.svg" alt="" />
+	</a>
+  <figcaption><b>Convergent boundary (CC)</b>: Two continental plates colliding with each other <sup><a href="https://commons.wikimedia.org/wiki/File:Continental-continental_destructive_plate_boundary.svg">[source]</a></sup></figcaption>
+</figure>
+
+</div>
+
+<p>Based on these types, we define the following enum, which we’ll use to annotate each edge with the necessary information:</p>
+
+<pre><code class="language-cpp">enum class Boundary_type : int8_t {
+	joined,            // both vertices belong to the same plate
+	ridge              // divergent boundary
+	subducting_origin, // the origin vertex is subducted under the dest vertex
+	subducting_dest,   // the dest vertex is subducted under the origin vertex
+	transform,         // transform boundary
+	collision,         // CC convergent boundary
+};
+</code></pre>
+
+<p>As we can see, there are two minor differences to the boundary types used by the theoretical model. The first is, that we need an additional type <code>joined</code>, for edges that connect to vertices that are part of the same plate. And the second is that convergent boundaries are labeled a bit differently. As we’ll see later, CO ad OO boundaries are handled by the same code path, so we don’t have to differentiate them here. But we still need two values for these types of boundaries because we have to encode which of the two vertices is subducted. We could encode this by storing the <code>Boundary_type</code> for both directions of the edge. But since the other boundary types don’t care about the direction, we can instead utilize that every directed edge has fixed a “preferred direction”, which is the first edge of its corresponding quad-edge, which means that <code>e.origin()</code> and <code>e.dest()</code> are well-defined for every undirected <code>Edge e</code>.</p>
+
+<p>What this comes down to is, that we’ve to iterate over each edge<sup class="footnote" onclick="showFootnote(this)" title="both primal and dual " data-title="both primal and dual ">[3]</sup> in our mesh and assign them a <code>Boundary_type</code> based on the properties of the two vertices that they connect.</p>
+
+<p>This step follows a couple of simple rules and mostly depends on the distance between the vertices <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathnormal">d</span></span></span></span> and their converging-velocity <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span>, that is the component of their combined velocities that moves them towards each other (or apart for negative values):</p>
+<ul>
+  <li>Initially, all edges start as <code>transform</code> boundaries</li>
+  <li>If the two vertices reference the same plate id, they are set to <code>joined</code> and if that ever changes or the edge is invalidated it’s transitioned back to <code>transform</code></li>
+  <li>If a <code>transform</code> boundary is separating (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mo>&lt;</mo><mo>=</mo><mo>−</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">v &lt;= -0.05</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">−</span><span class="mord">0.05</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>&gt;</mo><mo>=</mo><mn>1500</mn><mi>k</mi><mi>m</mi></mrow><annotation encoding="application/x-tex">d&gt;=1500km</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord">1500</span><span class="mord mathnormal">km</span></span></span></span>) the edge becomes a <code>ridge</code></li>
+  <li>If a <code>transform</code> boundary is converging (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mo>&gt;</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">v &gt; 0.1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">0.1</span></span></span></span>), we need to determine which of the two sub-plates would subduct<sup class="footnote" onclick="showFootnote(this)" title="This is usually the denser of the two plates. So, the oceanic plate of OC boundaries and the older of the two for OO boundaries. The exception to this are collisions between two continental sub-plates, where none of the two is dense enough to subduct, and they will collide instead " data-title="This is usually the denser of the two plates. So, the oceanic plate of OC boundaries and the older of the two for OO boundaries. The exception to this are collisions between two continental sub-plates, where none of the two is dense enough to subduct, and they will collide instead ">[4]</sup>
+    <ul>
+      <li><code>subducting_origin</code> if <code>e.origin()</code> would be subducted</li>
+      <li><code>subducting_dest</code> if <code>e.dest()</code> would be subducted</li>
+      <li><code>collision</code> if none of the two plates can be subducted because both are continental plates</li>
+    </ul>
+  </li>
+  <li>Finally, if <code>collision</code>, <code>subducting_origin</code> or <code>subducting_dest</code> boundaries cease to converge or if <code>ridge</code> boundaries start to converge again, they become a <code>transform</code> boundary once again</li>
+</ul>
+
+<h3 id="step-4-calculate-all-forces-acting-on-the-sub-plates">Step 4: Calculate all forces acting on the sub-plates</h3>
+
+<p>Now that we know the relationship between all connected vertices, we can calculate the forces that act on them.</p>
+
+<p>In our model, all forces are caused by edges. Hence, the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mrow><mi>f</mi><mi>o</mi><mi>r</mi><mi>c</mi><mi>e</mi></mrow><mo>⃗</mo></mover></mrow><annotation encoding="application/x-tex">\vec{force}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1718799999999998em;vertical-align:-0.19444em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9774399999999999em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mord mathnormal">orce</span></span></span><span style="top:-3.26344em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2355em;"><span class="overlay" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span></span></span></span> that acts on a given vertex, is just the sum of the forces caused by each of its connected edges. To calculate these, we iterate over all edges, calculate the force it applies to its <code>dest()</code> and <code>origin()</code> — based on its <code>Boundary_type</code> — and keep a running total of all forces per vertex.</p>
+
+<h4 id="boundary_typejoined">Boundary_type::joined</h4>
+<p>Vertices with this boundary type are part of the same plate. Since plates should keep their overall shape across time steps but still be slightly deformable on collisions, they are approximated as soft bodies.</p>
+
+<p>To achieve this, we model all <code>Boundary_type::joined</code> as damped springs, that apply a force to the two connected vertices, which aims to keep their distance constant. The combination of these damped springs on both primal and dual edges, combined with the restriction of vertices to a 2D surface and prevention of self-intersections and other artifacts, is sufficient to achieve the overall effect of a slightly deformable solid. Because the springs try to maintain their initial length, collisions behave elastic by default. But more forceful collisions will cause modifications in the mesh topology, which invalidates previously stored distance information, causing a more plastic collision response.</p>
+
+<p>To calculate the force, we utilize a standard damped spring equation<sup class="footnote" onclick="showFootnote(this)" title="The spring constants (k_compressed, k_stretched and damping), as well as other such constants in this post, are configurable and determine how &quot;soft&quot; the tectonic plates behave. " data-title="The spring constants (k_compressed, k_stretched and damping), as well as other such constants in this post, are configurable and determine how &quot;soft&quot; the tectonic plates behave. ">[5]</sup>:</p>
+
+<pre><code class="language-cpp">const auto k_compressed = 1e-4f;
+const auto k_stretched  = 5e-5f;
+const auto damping      = 2e-6f;
+
+const auto difference   = positions[dest] - positions[origin];
+const auto distance     = length(difference);
+const auto direction    = difference / distance;
+const auto displacement = target_distances[e] - distance;
+
+const auto relative_velocity = dot(velocities[origin] - velocities[dest], direction);
+
+const auto k     = displacement &gt; 0.f ? k_compressed : k_stretched;
+const auto force = direction * (displacement * k + relative_velocity * damping);
+
+forces[origin] -= force;
+forces[dest]   += force;
+</code></pre>
+
+<h4 id="boundary_typeridge">Boundary_type::ridge</h4>
+<p>Ridges are boundaries where two plats separate and mantel material wells upwards, forming new oceanic crust. This upwelling of material also pushes the two plates further apart, speeding up their separation.</p>
+
+<p>Not only is this one of the main forces that keeps the Wilson-Cycle of plate subduction going<sup class="footnote" onclick="showFootnote(this)" title="The minor one to be precise. The main forces (to my knowledge) being the Slab-Pull force at subduction boundaries, which we will look at next, and convection currents in the mantle." data-title="The minor one to be precise. The main forces (to my knowledge) being the Slab-Pull force at subduction boundaries, which we will look at next, and convection currents in the mantle.">[6]</sup>, but it also helps to stabilize the simulation, since it causes plates that started separating to keep doing so, instead of bouncing back or oscillate.</p>
+
+<p>This force is pretty easy to model, since we just need to apply a small constant force to both vertices, that pushes them apart:</p>
+
+<pre><code class="language-cpp">const auto ridge_push_force = 2e-8f;
+
+const auto origin_to_dest = normalized(positions[dest] - positions[origin]);
+
+forces[origin] -= origin_to_dest * ridge_push_force;
+forces[dest]   += origin_to_dest * ridge_push_force;
+</code></pre>
+
+<h4 id="boundary_typesubducting_origin">Boundary_type::subducting_origin</h4>
+<p>The main force for the Wilson-Cycle in our simulation is the Slab-Pull force, that acts on subduction boundaries and pulls the subducting plate closer.</p>
+
+<p>When a piece of crust is pushed underneath another plate, it isn’t actually hot enough to melt. Instead, it undergoes a complex process of partial melting, which causes the volcanism we can observe at the surface and also increases its density. Driven by this increased density, it starts to sink into the mantle, pulling the rest of the plate it’s still connected to down with it.</p>
+
+<p>Like the ridge-push above, this is again just a constant force. But contrary to ridges it doesn’t act on both vertices but just on the one that is belongs to the subducting plate. Which is of course the reason why we’ve split this boundary into two distinct types. Hence, except for the fact to which vertex the force is added, the calculation is identical for both <code>Boundary_type::subducting_origin</code> and <code>Boundary_type::subducting_dest</code>:</p>
+
+<pre><code class="language-cpp">const auto slab_pull_force = 5e-8f;
+
+// Boundary_type::subducting_origin
+forces[origin] += normalized(positions[dest] - positions[origin]) * slab_pull_force;
+
+// Boundary_type::subducting_dest
+forces[dest] += normalized(positions[origin] - positions[dest]) * slab_pull_force;
+</code></pre>
+
+<h4 id="boundary_typetransform-and-boundary_typecollision">Boundary_type::transform and Boundary_type::collision</h4>
+
+<p>The final two boundary types we need to handle are quite similar and actually use the exact same code, since they both apply a force to prevent two plates from intersecting. The only difference is that <code>collision</code> boundaries are converging much more forcefully, which might result in one plate suturing onto the other.</p>
+
+<p>Similar to the others, this boils down to a force applied in the direction of the boundary. Since the goal is to prevent the two plates from coming closer than they currently are, without affecting lateral motion or separation, the amount of force depends on the converging velocity between the two vertices. That is, the part of their velocity that acts to move them closer together, so exactly what we intend to negate.</p>
+
+<pre><code class="language-cpp">const auto difference          = positions[dest] - positions[origin];
+const auto distance            = length(difference);
+const auto direction           = difference / distance;
+const auto converging_velocity = dot(velocities[origin]-velocities[dest], direction);
+</code></pre>
+
+<p>If this converging velocity is greater than one, so if the two vertices are moving closer together, we need to apply a collision-response force.</p>
+
+<p>To fully negate that part of their velocity, we would have to apply a force of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mover accent="true"><mi>v</mi><mo>⃗</mo></mover><mrow><mtext>dt</mtext><mo>⋅</mo><mn>2</mn></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\vec{v}}{\text{dt} \cdot 2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2388em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8937999999999999em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">dt</span></span><span class="mbin mtight">⋅</span><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord accent mtight"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.714em;"><span style="top:-2.714em;"><span class="pstrut" style="height:2.714em;"></span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span><span style="top:-2.714em;"><span class="pstrut" style="height:2.714em;"></span><span class="accent-body" style="left:-0.20772em;"><span class="overlay mtight" style="height:0.714em;width:0.471em;"><svg width='0.471em' height='0.714em' style='width:0.471em' viewBox='0 0 471 714' preserveAspectRatio='xMinYMin'><path d='M377 20c0-5.333 1.833-10 5.5-14S391 0 397 0c4.667 0 8.667 1.667 12 5
+3.333 2.667 6.667 9 10 19 6.667 24.667 20.333 43.667 41 57 7.333 4.667 11
+10.667 11 18 0 6-1 10-3 12s-6.667 5-14 9c-28.667 14.667-53.667 35.667-75 63
+-1.333 1.333-3.167 3.5-5.5 6.5s-4 4.833-5 5.5c-1 .667-2.5 1.333-4.5 2s-4.333 1
+-7 1c-4.667 0-9.167-1.833-13.5-5.5S337 184 337 178c0-12.667 15.667-32.333 47-59
+H213l-171-1c-8.667-6-13-12.333-13-19 0-4.667 4.333-11.333 13-20h359
+c-16-25.333-24-45-24-59z'/></svg></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> to both vertices. But since this force is applied to all vertices that theoretically could collide, a response that that would be too strict and prevent nearly all movement. Instead, we need to modulate the force depending on the current distance between the two vertices and the closest distance that we want to allow. This can be achieved using a simple quadratic falloff like this:</p>
+
+<div class="image_list">
+
+  <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mrow><mo fence="true">(</mo><mfrac><mrow><mtext>max</mtext><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mtext> </mtext><mtext>distance</mtext><mtext> </mtext><mo>−</mo><mtext> </mtext><mtext>min_distance</mtext><mo stretchy="false">)</mo></mrow><mtext>min_distance</mtext></mfrac><mo fence="true">)</mo></mrow><mn>2</mn></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">f(x) = \frac{1}{1 + \left (\frac{\text{max}(0,\:\text{distance}\: -\: \text{min\_distance})}{\text{min\_distance}}\right ) ^2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:3.215468em;vertical-align:-1.894028em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.11em;"><span class="pstrut" style="height:3.354008em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0519999999999998em;"><span style="top:-2.6550000000000002em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">min_distance</span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.527em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">max</span></span><span class="mopen mtight">(</span><span class="mord mtight">0</span><span class="mpunct mtight">,</span><span class="mspace mtight" style="margin-right:0.26022222222222224em;"></span><span class="mord text mtight"><span class="mord mtight">distance</span></span><span class="mspace mtight" style="margin-right:0.26022222222222224em;"></span><span class="mbin mtight">−</span><span class="mspace mtight" style="margin-right:0.26022222222222224em;"></span><span class="mord text mtight"><span class="mord mtight">min_distance</span></span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5619999999999999em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.3540079999999999em;"><span style="top:-3.6029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.584008em;"><span class="pstrut" style="height:3.354008em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-4.031008em;"><span class="pstrut" style="height:3.354008em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.894028em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+  <figure class="captioned_image fixed_height_small">
+	<a class="open_img" href="/assets/images/07/graph_collision_response.png" target="_blank" rel="noopener noreferrer" onclick="show_image_overlay(event, this)">
+		<img style="float:none; max-height:20em" src="/assets/images/07/graph_collision_response.png" alt="" />
+	</a>
+  <figcaption>Plot of the falloff equation with a minimum distance of 8km.</figcaption>
+</figure>
+
+</div>
+
+<pre><code class="language-cpp">const auto collision_min_distance = 8'000.f; // meter
+
+if(converging_velocity &gt; 0.f) {
+	const auto d = std::max(0.f, dist - collision_min_distance) / collision_min_distance;
+	const auto alpha = std::clamp(1.f / (1.f + d * d), 0.f, 1.f);
+	const auto force = direction * (alpha * converging_velocity / delta_time / 2.f);
+
+	forces[origin] -= force;
+	forces[dest]   += force;
+}
+</code></pre>
+
+<figure class="captioned_image ">
+	<div class="open_img">
+	<video loop="" muted="" inline="" controls="">
+		<source src="/assets/images/07/plate_movement.mp4" type="video/webm" />
+	</video>
+	</div>
+  <figcaption>Tectonic plates moving, colliding and being subducted.</figcaption>
+</figure>
+
+<h2 id="elevation">Elevation</h2>
+
+<p>Now that we have continental and oceanic plates moving about, we can also use that information to finally pile up some mountains and create some actual terrain.</p>
+
+<h3 id="6-update-elevation">6. Update elevation</h3>
+<p>Mountain formation in reality is a complex process, involving 3D interactions and folding between parts of the crust with varying compositions and densities. But in our model this is simplified quite a bit and only depends on the sub-plates velocities and their <code>Boundary_type</code>.</p>
+
+<p>In fact, there are only two types of boundaries that are relevant for mountain formation:</p>
+
+<h4 id="boundary_typecollision">Boundary_type::collision</h4>
+
+<p>During collisions, the crust material between the two plates is pushed closer together. Since both plates are not dense enough to subduct they instead pile up, which forms large mountain ranges and plateaus, like the Alps or Mount Everest.</p>
+
+<p>To simulate this process, each edge on a collision boundary is check and if the two plates are still converging, the crust around the boundary is lifted by an amount based on the converging velocity and its distance to the boundary. Since this affects not just the two vertices, that are part of the boundary, but also the crust that is further away, a flood-fill is used to recursively visit all neighboring vertices of the plate until the elevation change becomes insignificant.</p>
+
+<p>My initial implementation actually contained a more general approach, that compared the volume of the Voronoi cell of <em>every</em> vertex, including internal ones, between time-steps and updated the elevation to preserve their volume, also taking the isostatic equilibrium into account. My hope was, that this would better simulate the effects of collisions further from the boundary. Alas, the resulting terrain was much more messy and noisy than the current implementation. But that is definitely an approach I plan to revisit once the simulation is stable and produces satisfactory results.</p>
+
+<h4 id="boundary_typesubducting_">Boundary_type::subducting_*</h4>
+
+<p>The other type of boundary that contributes to mountain formation are subduction zones. In the partial melting process of the subducted crust, water and other foreign materials, that were pulled down with the bedrock, disrupt the equilibrium inside the upper mantle, which causes a sharp increase in volcanism on the un-subducted plate above. This process creates the long thin mountain ranges near subduction boundaries, like the Andes and the islands around the <a href="https://en.wikipedia.org/wiki/Ring_of_Fire">ring of fire</a>.</p>
+
+<p>The simulation for this is currently quite similar to that for collision boundaries, except that only one of the plates is lifted up, while the other one is pulled down, and that the position of the elevation increase is slightly different, i.e. a smaller area and slightly inland from the actual boundary.</p>
+
+<h3 id="9-simulate-erosion">9. Simulate Erosion</h3>
+<p>The elevation-code described above mostly adds elevation. So, if left to its own devices, the whole planet would be one huge mountain range. To balance this out, we need an additional system that reduces the elevation, which is precisely what the erosion simulation does.</p>
+
+<p>This part is more or less copied as is from the paper of Cortial et al., with just some minor additions. Eventually, once we have a climate simulation to generate temperatures, precipitation and watersheds, we’ll extend this to a more interesting/faithful/complete erosion system. But for now, this simple simulation is good enough to counterbalance the mountain formation.</p>
+
+<pre><code class="language-cpp">const auto ocean_elevation =  -6'000.f; // meter
+const auto max_elevation   =  10'000.f; // meter
+const auto min_elevation   = -10'000.f; // meter
+
+const auto oceanic_dampening  = 6e-5f; // meter/year
+const auto sediment_accretion = 3e-6f; // meter/year
+const auto simple_erosion     = 8e-5f; // meter/year
+
+const auto sink_amount   = 0.006f; // meter/year
+const auto sink_begin    = 2'000'000.f; // years
+const auto sink_duration = 2'000'000.f; // years
+
+if(types[v] == Crust_type::continental) {
+    // Move elevation of continental crust towards 0m above sea level.
+    // Since this is based on the current elevation, larger mountains are eroded faster.
+	elevation -= elevation / max_elevation * simple_erosion * dt;
+
+} else if(elevation &gt; -6'000.f) {
+    // Oceanic ridges are initially less dense than the surrounding sea floor and
+    //   cool and sink over time, which is (crudely) simulated here
+	const auto age = now - created[v];
+	if(age &gt; sink_begin &amp;&amp; age &lt; sink_duration + sink_begin) {
+		elevation = std::max(ocean_elevation, elevation - sink_amount * dt);
+	}
+
+    // Ocean floor above the height of the abyssal plane is pushed down
+	const auto x      = elevation / ocean_elevation;
+	const auto factor = (1.f - elevation / min_elevation) * smootherstep(0.f, 0.2f, x);
+	const auto delta  = std::max(0.f, factor * oceanic_dampening * dt);
+	elevation         = std::max(ocean_elevation, elevation - delta);
+
+} else {
+    // Ocean floor below the abyssal plane (e.g. from old inactive subduction zones)
+    //   is slowly filled up by sediment.
+	elevation += sediment_accretion * dt;
+}
+</code></pre>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Now that we’ve got some movement going and elevation elevating, we’ve actually already covered half of the algorithm:</p>
+
+<ol>
+  <li>Add vertices where more details are needed and remove vertices unessential ones</li>
+  <li><span style="color:#c6ffb3">✔ Compare the properties of neighboring sub-plates to determine if they belong to the same tectonic plate or fall into one of the boundary zones discussed above (transform, divergent, convergent CC/OC/OO)</span></li>
+  <li>Create new oceanic crust at divergent boundaries</li>
+  <li><span style="color:#c6ffb3">✔ Calculate all forces acting on the sub-plates</span></li>
+  <li><span style="color:#c6ffb3">✔ Calculate the acceleration of all sub-plates, based on the forces acting on them, and utilize Verlet integration to calculate their new velocities and positions</span></li>
+  <li><span style="color:#c6ffb3">✔ Update each sub-plate’s elevation, if they are part of a subduction or collision zone</span></li>
+  <li>Check for collisions and resolve them</li>
+  <li>Check and restore Delaunay condition, if required <sup class="footnote" onclick="showFootnote(this)" title="This step also searches for triangles whose height is much smaller or larger than their base and tries to normalize them because triangles like this could negatively impact the simulation over time." data-title="This step also searches for triangles whose height is much smaller or larger than their base and tries to normalize them because triangles like this could negatively impact the simulation over time.">[7]</sup></li>
+  <li><span style="color:#c6ffb3">✔ Simulate erosion</span></li>
+  <li>Combine colliding continental plates and split plates that have gotten too large</li>
+</ol>
+
+<p>All that’s left for the last two posts now, is to clean up the mess we left behind in step 5. Which means cleaning up inconsistencies in the mesh and handling collisions caused by the plate’s movement (7. and 8.) as well as creating/destroying crust (1. and 3.) and simulating large-scale plate interactions (10.).</p>
+:ET
